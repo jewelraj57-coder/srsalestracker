@@ -1,0 +1,1908 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>লাইভ সেলস ও অর্ডার ট্র্যাকার (৬ এস আর)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Hind Siliguri & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Hind Siliguri"', 'Inter', 'sans-serif'],
+                        num: ['Inter', '"Hind Siliguri"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html, body {
+            font-family: 'Hind Siliguri', 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+        .num-font {
+            font-family: 'Inter', 'Hind Siliguri', sans-serif;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .touch-target {
+            min-height: 44px;
+        }
+        .safe-bottom {
+            padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="text-slate-800 pb-28 md:pb-10">
+
+    <!-- Toast Notification Banner -->
+    <div id="toast" class="fixed top-4 right-4 left-4 md:left-auto md:w-96 z-50 transform transition-all duration-300 -translate-y-24 opacity-0 pointer-events-none">
+        <div id="toastContent" class="bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 border border-slate-700">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400 shrink-0"></i>
+            <span id="toastMessage" class="text-sm font-medium">সফলভাবে সংরক্ষণ করা হয়েছে!</span>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- ROLE SELECTION SCREEN (প্রবেশ মোড নির্বাচন স্ক্রিন)                     -->
+    <!-- ===================================================================== -->
+    <div id="roleSelectionScreen" class="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-950 flex flex-col justify-between p-4 md:p-6">
+        <div class="max-w-md w-full mx-auto my-auto space-y-5">
+            
+            <!-- App Brand Header -->
+            <div class="text-center text-white space-y-2">
+                <div class="w-16 h-16 bg-white/15 backdrop-blur-md rounded-2xl mx-auto flex items-center justify-center border border-white/20 shadow-lg">
+                    <i data-lucide="bar-chart-3" class="w-9 h-9 text-amber-300"></i>
+                </div>
+                <h1 class="text-2xl font-bold tracking-tight">ডেইলি সেলস ও অর্ডার ট্র্যাকার</h1>
+                <p class="text-xs text-blue-200">৬ জন এস আর • লাইভ ক্লাউড সিঙ্ক সিস্টেম</p>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-xs font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="roleSyncStatusText">অনলাইন সিঙ্ক সংযুক্ত হচ্ছে...</span>
+                </div>
+            </div>
+
+            <!-- Card 1: SR Mode (এস আর মোড) -->
+            <div class="bg-white rounded-3xl p-5 shadow-2xl space-y-4">
+                <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+                    <div class="bg-blue-100 text-blue-700 p-2.5 rounded-2xl">
+                        <i data-lucide="user-check" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">আপনার নাম নির্বাচন করুন:</label>
+                        <select id="loginSrSelect" onchange="onLoginSrSelectChange()" class="w-full touch-target bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-3 text-base font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+
+                    <!-- Optional SR PIN box (Shown only if Admin sets a PIN for this SR) -->
+                    <div id="loginSrPinContainer" class="hidden">
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">এস আর পিন (PIN) দিন:</label>
+                        <input type="password" inputmode="numeric" maxlength="6" id="loginSrPinInput" placeholder="••••" class="w-full touch-target bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-3 text-center text-lg font-bold tracking-widest num-font focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <button onclick="enterAsSR()" class="w-full min-h-[48px] bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold py-3.5 px-4 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition">
+                        <span>এস আর হিসেবে প্রবেশ করুন</span>
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card 2: Admin / TSO Mode (অ্যাডমিন / TSO মোড) -->
+            <div class="bg-white/95 backdrop-blur-md rounded-3xl p-5 shadow-xl space-y-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-amber-100 text-amber-800 p-2.5 rounded-2xl">
+                            <i data-lucide="shield-check" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-900">অ্যাডমিন / TSO মোড</h2>
+                            <p class="text-xs text-slate-500">৬ জনের মোট হিসাব ও টার্গেট সেটআপ</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <input type="password" inputmode="numeric" maxlength="6" id="adminPinInput" placeholder="অ্যাডমিন পিন (ডিফল্ট: 1234)" onkeydown="if(event.key==='Enter') enterAsAdmin()" class="flex-1 min-w-0 touch-target bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-base font-bold num-font focus:ring-2 focus:ring-amber-500 outline-none">
+                    <button onclick="enterAsAdmin()" class="touch-target bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition shrink-0">
+                        প্রবেশ
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add to Home Screen Tip -->
+            <div class="bg-white/10 border border-white/15 rounded-2xl p-3 text-blue-100 text-xs flex items-start gap-2.5">
+                <i data-lucide="smartphone" class="w-5 h-5 text-amber-300 shrink-0 mt-0.5"></i>
+                <p><strong>মোবাইল অ্যাপ হিসেবে ব্যবহার করুন:</strong> ফোনের Chrome ব্রাউজারের উপরে ডানপাশে <strong class="text-white">⋮ (Menu)</strong> চেপে <strong class="text-amber-300">"Add to Home screen"</strong> চাপলে এটি সরাসরি অ্যাপের মতো ফোনের স্ক্রিনে সেভ হয়ে যাবে।</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MAIN APPLICATION SHELL (অ্যাডমিন ও এস আর উভয়ের জন্য মূল ইন্টারফেস)      -->
+    <!-- ===================================================================== -->
+    <div id="mainAppShell" class="hidden">
+        <!-- Top Header -->
+        <header class="bg-gradient-to-r from-blue-800 via-blue-700 to-indigo-800 text-white sticky top-0 z-30 shadow-md">
+            <div class="max-w-6xl mx-auto px-3 md:px-4 py-2.5 flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                    <div class="bg-white/15 p-2 rounded-xl backdrop-blur-sm shrink-0">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5 text-amber-300"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5">
+                            <h1 id="headerTitle" class="text-sm sm:text-base md:text-lg font-bold leading-tight truncate">সেলস ও অর্ডার ট্র্যাকার</h1>
+                            <span id="roleBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-slate-900 shrink-0">TSO</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-[11px] text-blue-100">
+                            <span id="liveSyncDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span id="liveSyncText" class="truncate">অনলাইন সিঙ্ক চালু</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <input type="date" id="globalDateInput" class="min-h-[40px] bg-white/15 border border-white/25 text-white text-xs rounded-xl px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-300 num-font" title="তারিখ পরিবর্তন করুন">
+                    <button onclick="switchRoleScreen()" class="min-h-[40px] min-w-[40px] bg-white/15 hover:bg-white/25 active:scale-95 text-white px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1 border border-white/20" title="মোড পরিবর্তন করুন">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">মোড বদলান</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Admin Desktop / Tablet Top Tabs -->
+            <nav id="adminTopNav" class="hidden md:block bg-blue-900/50 border-t border-white/10">
+                <div class="max-w-6xl mx-auto px-4 flex gap-2 py-2">
+                    <button onclick="switchTab('dashboard')" data-tab="dashboard" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-white text-blue-800 shadow-sm">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> সম্মিলিত ড্যাশবোর্ড (৬ এস আর)
+                    </button>
+                    <button onclick="switchTab('entry')" data-tab="entry" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all text-blue-100 hover:bg-white/10">
+                        <i data-lucide="clipboard-edit" class="w-4 h-4"></i> অর্ডার এন্ট্রি (হাফ / ফুল সামারি)
+                    </button>
+                    <button onclick="switchTab('individual')" data-tab="individual" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all text-blue-100 hover:bg-white/10">
+                        <i data-lucide="users" class="w-4 h-4"></i> ইন্ডিভিজুয়াল এস আর হিসাব
+                    </button>
+                    <button onclick="switchTab('targets')" data-tab="targets" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all text-blue-100 hover:bg-white/10">
+                        <i data-lucide="target" class="w-4 h-4"></i> টার্গেট ও এস আর সেটআপ
+                    </button>
+                </div>
+            </nav>
+
+            <!-- SR Desktop / Tablet Top Tabs -->
+            <nav id="srTopNav" class="hidden bg-blue-900/50 border-t border-white/10">
+                <div class="max-w-6xl mx-auto px-4 flex gap-2 py-2">
+                    <button onclick="switchTab('entry')" data-tab="entry" class="sr-tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-white text-blue-800 shadow-sm">
+                        <i data-lucide="clipboard-edit" class="w-4 h-4"></i> আজকের অর্ডার এন্ট্রি (হাফ / ফুল সামারি)
+                    </button>
+                    <button onclick="switchTab('individual')" data-tab="individual" class="sr-tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all text-blue-100 hover:bg-white/10">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4"></i> আমার ডেইলি ও মাসিক রিপোর্ট
+                    </button>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Main Container -->
+        <main class="max-w-6xl mx-auto px-3 md:px-4 pt-4 space-y-5">
+
+            <!-- ========================================================= -->
+            <!-- TAB 1: COMBINED DASHBOARD (৬ জনের সম্মিলিত হিসাব - ADMIN)   -->
+            <!-- ========================================================= -->
+            <section id="tab-dashboard" class="tab-section space-y-5">
+                
+                <!-- Filter & WhatsApp Export Bar -->
+                <div class="bg-white p-3.5 md:p-4 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="space-y-1.5 sm:space-y-0 sm:flex sm:items-center sm:gap-2">
+                        <span class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">রিপোর্টের ধরন:</span>
+                        <div class="grid grid-cols-3 sm:inline-flex bg-slate-100 p-1 rounded-xl gap-1">
+                            <button onclick="setDashboardFilter('latest')" id="filter-latest" class="dash-filter-btn min-h-[40px] px-2.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold bg-blue-600 text-white shadow-sm transition">
+                                সর্বশেষ অবস্থা
+                            </button>
+                            <button onclick="setDashboardFilter('half')" id="filter-half" class="dash-filter-btn min-h-[40px] px-2.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold text-slate-600 hover:text-slate-900 transition">
+                                হাফ (দুপুর)
+                            </button>
+                            <button onclick="setDashboardFilter('full')" id="filter-full" class="dash-filter-btn min-h-[40px] px-2.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold text-slate-600 hover:text-slate-900 transition">
+                                ফুল (দিনশেষে)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button onclick="copyTeamWhatsAppReport()" class="w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition">
+                            <i data-lucide="share-2" class="w-4 h-4"></i>
+                            <span>৬ জনের রিপোর্ট কপি (WhatsApp)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4 KPI Cards for Combined Team Summary -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                    <!-- Card 1: Memo Summary -->
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 relative overflow-hidden">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-500">মোট অর্ডার মেমো সংখ্যা</p>
+                                <h3 class="text-2xl font-bold text-slate-900 mt-1 num-font"><span id="team-memo-order">0</span> <span class="text-xs font-normal text-slate-500" id="team-memo-pct">(0%)</span></h3>
+                            </div>
+                            <div class="bg-purple-100 text-purple-700 p-2 rounded-xl">
+                                <i data-lucide="receipt" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                            <span class="text-slate-500">টার্গেট: <strong class="text-slate-700 num-font" id="team-memo-target">0</strong> টি</span>
+                            <span id="team-memo-shortfall" class="font-semibold text-rose-600 num-font">বাকি: 0</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Pen (কলম - পিস) -->
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 relative overflow-hidden">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold text-blue-600">১. কলম অর্ডার (পিস)</p>
+                                <h3 class="text-2xl font-bold text-slate-900 mt-1 num-font"><span id="team-pen-order">0</span> <span class="text-xs font-normal text-slate-500" id="team-pen-pct">(0%)</span></h3>
+                            </div>
+                            <div class="bg-blue-100 text-blue-700 p-2 rounded-xl">
+                                <i data-lucide="pen-tool" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2.5 overflow-hidden">
+                            <div id="team-pen-bar" class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <div class="mt-2 flex items-center justify-between text-xs">
+                            <span class="text-slate-500">টার্গেট: <strong class="text-slate-700 num-font" id="team-pen-target">0</strong></span>
+                            <span id="team-pen-shortfall" class="font-semibold text-rose-600 num-font">শর্টফল: 0</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Stationery (স্টেশনারি - পিস) -->
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 relative overflow-hidden">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold text-amber-600">২. স্টেশনারি অর্ডার (পিস)</p>
+                                <h3 class="text-2xl font-bold text-slate-900 mt-1 num-font"><span id="team-stat-order">0</span> <span class="text-xs font-normal text-slate-500" id="team-stat-pct">(0%)</span></h3>
+                            </div>
+                            <div class="bg-amber-100 text-amber-700 p-2 rounded-xl">
+                                <i data-lucide="scissors" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2.5 overflow-hidden">
+                            <div id="team-stat-bar" class="bg-amber-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <div class="mt-2 flex items-center justify-between text-xs">
+                            <span class="text-slate-500">টার্গেট: <strong class="text-slate-700 num-font" id="team-stat-target">0</strong></span>
+                            <span id="team-stat-shortfall" class="font-semibold text-rose-600 num-font">শর্টফল: 0</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Khata (খাতা - টাকা) -->
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 relative overflow-hidden">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold text-emerald-600">৩. খাতা অর্ডার (টাকা)</p>
+                                <h3 class="text-2xl font-bold text-slate-900 mt-1 num-font">৳ <span id="team-khata-order">0</span> <span class="text-xs font-normal text-slate-500" id="team-khata-pct">(0%)</span></h3>
+                            </div>
+                            <div class="bg-emerald-100 text-emerald-700 p-2 rounded-xl">
+                                <i data-lucide="book-open" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2.5 overflow-hidden">
+                            <div id="team-khata-bar" class="bg-emerald-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <div class="mt-2 flex items-center justify-between text-xs">
+                            <span class="text-slate-500">টার্গেট: <strong class="text-slate-700 num-font" id="team-khata-target">৳0</strong></span>
+                            <span id="team-khata-shortfall" class="font-semibold text-rose-600 num-font">শর্টফল: ৳0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6 SR Summary Table / Cards -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+                    <div class="px-4 py-3.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50/70">
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800">৬ জন এস আর-এর লাইভ অবস্থা</h2>
+                            <p class="text-xs text-slate-500" id="dashTableSubtitle">তারিখ অনুযায়ী টার্গেট, অর্ডার, মেমো ও শর্টফল</p>
+                        </div>
+                        <button onclick="switchTab('entry')" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl font-semibold flex items-center gap-1.5 shadow-sm">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i> অর্ডার এন্ট্রি দিন
+                        </button>
+                    </div>
+
+                    <!-- Responsive Desktop Table -->
+                    <div class="hidden lg:block overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100/80 text-slate-600 text-xs uppercase border-b border-slate-200">
+                                    <th class="py-3 px-4 font-bold">এস আর নাম</th>
+                                    <th class="py-3 px-3 font-bold">জমা স্ট্যাটাস</th>
+                                    <th class="py-3 px-3 font-bold text-center">মেমো (অর্ডার/টার্গেট)</th>
+                                    <th class="py-3 px-3 font-bold text-right text-blue-700">কলম (অর্ডার / টার্গেট / শর্টফল)</th>
+                                    <th class="py-3 px-3 font-bold text-right text-amber-700">স্টেশনারি (অর্ডার / টার্গেট / শর্টফল)</th>
+                                    <th class="py-3 px-3 font-bold text-right text-emerald-700">খাতা টাকা (অর্ডার / টার্গেট / শর্টফল)</th>
+                                    <th class="py-3 px-4 font-bold text-center">অ্যাকশন</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teamDesktopTableBody" class="divide-y divide-slate-100 text-sm">
+                                <!-- Populated by JS -->
+                            </tbody>
+                            <tfoot id="teamDesktopTableFoot" class="bg-blue-50/70 font-bold text-slate-900 border-t-2 border-blue-200 text-sm">
+                                <!-- Populated by JS -->
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Mobile & Tablet Cards View -->
+                    <div id="teamMobileCards" class="lg:hidden divide-y divide-slate-100">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================= -->
+            <!-- TAB 2: DAILY ORDER ENTRY FORM (হাফ ও ফুল সামারি ফর্ম)       -->
+            <!-- ========================================================= -->
+            <section id="tab-entry" class="tab-section hidden space-y-4">
+                <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+                    <div class="bg-gradient-to-r from-slate-800 to-slate-900 text-white px-5 py-4">
+                        <h2 class="text-lg font-bold flex items-center gap-2">
+                            <i data-lucide="clipboard-check" class="w-5 h-5 text-amber-400"></i>
+                            দৈনিক অর্ডার ও সামারি এন্ট্রি ফর্ম
+                        </h2>
+                        <p class="text-xs text-slate-300 mt-0.5">দুপুরের হাফ সামারি অথবা দিনশেষের ফুল সামারি বসান (সরাসরি ক্লাউডে সেভ হবে)</p>
+                    </div>
+
+                    <form id="orderEntryForm" onsubmit="saveOrderEntry(event)" class="p-4 md:p-6 space-y-5">
+                        
+                        <!-- Step 1: Select SR & Date -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-1.5">এস আর নাম *</label>
+                                <select id="entrySrSelect" onchange="onEntryFormContextChange()" class="w-full touch-target bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-3 text-base font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:opacity-85 disabled:bg-blue-50/60 disabled:text-blue-950">
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-1.5">তারিখ *</label>
+                                <input type="date" id="entryDateInput" onchange="onEntryFormContextChange()" class="w-full touch-target bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-3 text-base font-bold text-slate-800 num-font focus:ring-2 focus:ring-blue-500 outline-none" required>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Report Type Toggle (হাফ সামারি vs ফুল সামারি) -->
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5">সামারির ধরন নির্বাচন করুন *</label>
+                            <div class="grid grid-cols-2 gap-2.5">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="summaryType" value="half" class="peer sr-only" checked onchange="onEntryFormContextChange()">
+                                    <div class="min-h-[64px] p-3 rounded-xl border-2 border-slate-200 peer-checked:border-amber-500 peer-checked:bg-amber-50/70 transition text-center flex flex-col justify-center">
+                                        <div class="flex items-center justify-center gap-1.5 font-bold text-sm text-slate-800">
+                                            <i data-lucide="sun" class="w-4 h-4 text-amber-500 shrink-0"></i>
+                                            <span>হাফ সামারি (দুপুর)</span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 mt-0.5" id="formHalfStatusHint">দুপুর পর্যন্ত অর্ডার ও মেমো</p>
+                                    </div>
+                                </label>
+
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="summaryType" value="full" class="peer sr-only" onchange="onEntryFormContextChange()">
+                                    <div class="min-h-[64px] p-3 rounded-xl border-2 border-slate-200 peer-checked:border-emerald-600 peer-checked:bg-emerald-50/70 transition text-center flex flex-col justify-center">
+                                        <div class="flex items-center justify-center gap-1.5 font-bold text-sm text-slate-800">
+                                            <i data-lucide="moon" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+                                            <span>ফুল সামারি (দিনশেষে)</span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 mt-0.5" id="formFullStatusHint">সারাদিনের চূড়ান্ত অর্ডার</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Reference Box: Assigned Daily Target for Selected SR -->
+                        <div class="bg-blue-50/80 border border-blue-200 rounded-2xl p-3.5">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-blue-900 flex items-center gap-1.5">
+                                    <i data-lucide="target" class="w-4 h-4 text-blue-600"></i>
+                                    <span id="formTargetTitle">আজকের নির্ধারিত টার্গেট</span>
+                                </span>
+                                <button type="button" id="formEditTargetLink" onclick="switchTab('targets')" class="text-[11px] text-blue-700 underline font-semibold">টার্গেট পরিবর্তন</button>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                                <div class="bg-white rounded-xl p-2 border border-blue-100">
+                                    <div class="text-[11px] text-slate-500">মেমো টার্গেট</div>
+                                    <div class="text-sm font-bold text-purple-700 num-font" id="ref-memo-target">0 টি</div>
+                                </div>
+                                <div class="bg-white rounded-xl p-2 border border-blue-100">
+                                    <div class="text-[11px] text-slate-500">কলম টার্গেট</div>
+                                    <div class="text-sm font-bold text-blue-700 num-font" id="ref-pen-target">0 পিস</div>
+                                </div>
+                                <div class="bg-white rounded-xl p-2 border border-blue-100">
+                                    <div class="text-[11px] text-slate-500">স্টেশনারি টার্গেট</div>
+                                    <div class="text-sm font-bold text-amber-700 num-font" id="ref-stat-target">0 পিস</div>
+                                </div>
+                                <div class="bg-white rounded-xl p-2 border border-blue-100">
+                                    <div class="text-[11px] text-slate-500">খাতা টার্গেট</div>
+                                    <div class="text-sm font-bold text-emerald-700 num-font" id="ref-khata-target">৳ 0</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Order Inputs with Live Shortfall Calculation -->
+                        <div class="space-y-4">
+                            <!-- Memo Count Input -->
+                            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <label for="inputMemo" class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
+                                        মোট অর্ডার মেমো সংখ্যা (কয়টা মেমো)
+                                    </label>
+                                    <span id="live-memo-shortfall" class="text-xs font-bold px-2 py-0.5 rounded-lg bg-rose-100 text-rose-700 num-font">বাকি: 0</span>
+                                </div>
+                                <input type="number" inputmode="numeric" id="inputMemo" min="0" placeholder="যেমন: ১৮" oninput="updateLiveFormCalculations()" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-3 text-lg font-bold text-slate-900 num-font focus:ring-2 focus:ring-purple-500 outline-none" required>
+                            </div>
+
+                            <!-- 1. Pen (পিস) -->
+                            <div class="bg-blue-50/40 p-3.5 rounded-2xl border border-blue-200/80">
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <label for="inputPen" class="text-sm font-bold text-blue-950 flex items-center gap-1.5">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                                        ১. কলম অর্ডার (পিস)
+                                    </label>
+                                    <span id="live-pen-shortfall" class="text-xs font-bold px-2 py-0.5 rounded-lg bg-rose-100 text-rose-700 num-font">শর্টফল: 0 পিস</span>
+                                </div>
+                                <input type="number" inputmode="numeric" id="inputPen" min="0" placeholder="কত পিস কলম অর্ডার হয়েছে?" oninput="updateLiveFormCalculations()" class="w-full bg-white border border-blue-300 rounded-xl px-3.5 py-3 text-lg font-bold text-slate-900 num-font focus:ring-2 focus:ring-blue-500 outline-none" required>
+                            </div>
+
+                            <!-- 2. Stationery (পিস) -->
+                            <div class="bg-amber-50/40 p-3.5 rounded-2xl border border-amber-200/80">
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <label for="inputStat" class="text-sm font-bold text-amber-950 flex items-center gap-1.5">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                                        ২. স্টেশনারি অর্ডার (পিস)
+                                    </label>
+                                    <span id="live-stat-shortfall" class="text-xs font-bold px-2 py-0.5 rounded-lg bg-rose-100 text-rose-700 num-font">শর্টফল: 0 পিস</span>
+                                </div>
+                                <input type="number" inputmode="numeric" id="inputStat" min="0" placeholder="কত পিস স্টেশনারি অর্ডার হয়েছে?" oninput="updateLiveFormCalculations()" class="w-full bg-white border border-amber-300 rounded-xl px-3.5 py-3 text-lg font-bold text-slate-900 num-font focus:ring-2 focus:ring-amber-500 outline-none" required>
+                            </div>
+
+                            <!-- 3. Khata (টাকা) -->
+                            <div class="bg-emerald-50/40 p-3.5 rounded-2xl border border-emerald-200/80">
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <label for="inputKhata" class="text-sm font-bold text-emerald-950 flex items-center gap-1.5">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                                        ৩. খাতা অর্ডার (টাকা)
+                                    </label>
+                                    <span id="live-khata-shortfall" class="text-xs font-bold px-2 py-0.5 rounded-lg bg-rose-100 text-rose-700 num-font">শর্টফল: ৳0</span>
+                                </div>
+                                <input type="number" inputmode="numeric" id="inputKhata" min="0" placeholder="কত টাকার খাতার অর্ডার হয়েছে?" oninput="updateLiveFormCalculations()" class="w-full bg-white border border-emerald-300 rounded-xl px-3.5 py-3 text-lg font-bold text-slate-900 num-font focus:ring-2 focus:ring-emerald-500 outline-none" required>
+                            </div>
+                        </div>
+
+                        <!-- Optional Note -->
+                        <div>
+                            <label for="inputNote" class="block text-xs font-semibold text-slate-600 mb-1">মন্তব্য / মার্কেট নোট (ঐচ্ছিক)</label>
+                            <input type="text" id="inputNote" placeholder="যেমন: সদর রোড মার্কেট ভিজিট সম্পন্ন" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                            <button type="submit" id="saveEntryBtn" class="flex-1 min-h-[48px] bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold py-3.5 px-5 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition">
+                                <i data-lucide="cloud-upload" class="w-5 h-5"></i>
+                                <span>রিপোর্ট জমা দিন (লাইভ সেভ)</span>
+                            </button>
+                            <button type="button" onclick="copyCurrentFormWhatsApp()" class="min-h-[48px] bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-semibold py-3.5 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 text-base sm:text-sm transition">
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                                <span>কপি (WhatsApp)</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- ========================================================= -->
+            <!-- TAB 3: INDIVIDUAL SR REPORT (ইন্ডিভিজুয়াল এস আর হিসাব)     -->
+            <!-- ========================================================= -->
+            <section id="tab-individual" class="tab-section hidden space-y-5">
+                
+                <!-- SR Selector Pills (Only shown in Admin mode; hidden in SR mode so SR only views own report) -->
+                <div id="individualSrPillsWrapper" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200/80">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">যেকোনো একজন এস আর নির্বাচন করুন:</label>
+                    <div id="individualSrPills" class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Selected SR Detailed Profile & Comparison -->
+                <div id="individualDetailContainer" class="space-y-5">
+                    <!-- Populated dynamically -->
+                </div>
+            </section>
+
+            <!-- ========================================================= -->
+            <!-- TAB 4: TARGETS & 6 SR SETUP (ADMIN ONLY)                  -->
+            <!-- ========================================================= -->
+            <section id="tab-targets" class="tab-section hidden space-y-5">
+                
+                <!-- Top Actions Bar -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-base md:text-lg font-bold text-slate-800">৬ জন এস আর-এর নাম, পিন ও টার্গেট সেটআপ</h2>
+                        <p class="text-xs text-slate-500">এখানে সেভ করলে সাথে সাথে ৬ জন এস আর-এর মোবাইলে নতুন নাম ও টার্গেট আপডেট হয়ে যাবে</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="copySr1TargetToAll()" class="bg-amber-100 hover:bg-amber-200 text-amber-900 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition">
+                            <i data-lucide="copy-check" class="w-4 h-4"></i> ১ম এস আর-এর ডেইলি টার্গেট সবার ঘরে কপি করুন
+                        </button>
+                        <button onclick="saveAllTargets()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-1.5 shadow-sm transition">
+                            <i data-lucide="check" class="w-4 h-4"></i> সব টার্গেট সেভ করুন
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Admin PIN Security Setting -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                            <i data-lucide="lock" class="w-4 h-4 text-amber-600"></i> অ্যাডমিন / TSO প্রবেশ পিন (PIN)
+                        </h3>
+                        <p class="text-xs text-slate-500">আপনার অ্যাডমিন ড্যাশবোর্ড সুরক্ষিত রাখতে ৪-৬ সংখ্যার পিন সেট করুন (ডিফল্ট: 1234)</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="text" inputmode="numeric" maxlength="6" id="settingAdminPin" value="1234" class="w-32 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold text-center num-font">
+                        <button onclick="saveAdminPinSetting()" class="bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl text-xs font-bold">পিন আপডেট</button>
+                    </div>
+                </div>
+
+                <!-- 6 SR Target Cards Grid -->
+                <div id="targetSetupGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <!-- Data Backup & Reset Utility -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800">ডাটা ব্যাকআপ ও রিসেট</h3>
+                        <p class="text-xs text-slate-500">সকল তথ্য ক্লাউডে রিয়েল-টাইম সংরক্ষিত আছে। চাইলে ব্যাকআপ ডাউনলোড করতে পারেন।</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="exportBackupJSON()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5">
+                            <i data-lucide="download" class="w-4 h-4"></i> ব্যাকআপ ডাউনলোড
+                        </button>
+                        <button onclick="showResetConfirmModal()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> স্যাম্পল ডাটা রিসেট
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Admin Mobile Bottom Navigation Bar -->
+        <nav id="adminMobileNav" class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40 px-1.5 pt-1.5 safe-bottom shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+            <div class="grid grid-cols-4 gap-1">
+                <button onclick="switchTab('dashboard')" data-tab="dashboard" class="mobile-tab-btn min-h-[48px] flex flex-col items-center justify-center py-1.5 rounded-xl text-blue-600 bg-blue-50 font-bold">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    <span class="text-[11px] mt-0.5">মোট হিসাব</span>
+                </button>
+                <button onclick="switchTab('entry')" data-tab="entry" class="mobile-tab-btn min-h-[48px] flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-500 font-medium">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    <span class="text-[11px] mt-0.5">অর্ডার এন্ট্রি</span>
+                </button>
+                <button onclick="switchTab('individual')" data-tab="individual" class="mobile-tab-btn min-h-[48px] flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-500 font-medium">
+                    <i data-lucide="user-check" class="w-5 h-5"></i>
+                    <span class="text-[11px] mt-0.5">এস আর রিপোর্ট</span>
+                </button>
+                <button onclick="switchTab('targets')" data-tab="targets" class="mobile-tab-btn min-h-[48px] flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-500 font-medium">
+                    <i data-lucide="target" class="w-5 h-5"></i>
+                    <span class="text-[11px] mt-0.5">টার্গেট সেট</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- SR Mobile Bottom Navigation Bar -->
+        <nav id="srMobileNav" class="hidden md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40 px-2 pt-1.5 safe-bottom shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="switchTab('entry')" data-tab="entry" class="sr-mobile-tab-btn min-h-[48px] flex flex-col items-center justify-center py-1.5 rounded-xl text-blue-600 bg-blue-50 font-bold">
+                    <i data-lucide="clipboard-edit" class="w-5 h-5"></i>
+                    <span class="text-xs mt-0.5">অর্ডার এন্ট্রি</span>
+                </button>
+                <button onclick="switchTab('individual')" data-tab="individual" class="sr-mobile-tab-btn min-h-[48px] flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-500 font-medium">
+                    <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+                    <span class="text-xs mt-0.5">আমার হিসাব ও টার্গেট</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Custom Confirmation Modal (No browser confirm/alert used) -->
+    <div id="customModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+            <div class="flex items-center gap-3 text-rose-600">
+                <div class="bg-rose-100 p-2.5 rounded-xl">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-900">তথ্য রিসেট করবেন?</h3>
+            </div>
+            <p class="text-sm text-slate-600">এটি করলে ক্লাউডের বর্তমান সকল এন্ট্রি মুছে গিয়ে নতুন করে ৬ জন এস আর-এর স্যাম্পল ডাটা লোড হবে।</p>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeCustomModal()" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200">বাতিল</button>
+                <button onclick="confirmResetData()" class="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700">হ্যাঁ, রিসেট করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden textarea for reliable clipboard copying -->
+    <textarea id="clipboardHelper" class="fixed -top-96 left-0 opacity-0 pointer-events-none"></textarea>
+
+    <!-- ===================================================================== -->
+    <!-- FIREBASE REAL-TIME CLOUD SYNC & APPLICATION LOGIC                      -->
+    <!-- ===================================================================== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ---------------------------------------------------------------------
+        // 1. DATE & FORMATTING HELPERS
+        // ---------------------------------------------------------------------
+        function getTodayStr() {
+            const now = new Date();
+            const offset = now.getTimezoneOffset();
+            const localDate = new Date(now.getTime() - (offset * 60 * 1000));
+            return localDate.toISOString().split('T')[0];
+        }
+
+        function fmtNum(num) {
+            return Number(num || 0).toLocaleString('en-US');
+        }
+
+        function getDefaultTeamConfig() {
+            return {
+                adminPin: '1234',
+                srs: [
+                    { id: 'sr1', name: 'এস আর ১ (রফিকুল)', area: 'সদর উত্তর', pin: '', monthlyTarget: { pen: 15000, stat: 8000, khata: 250000 }, dailyTarget: { memo: 25, pen: 600, stat: 300, khata: 10000 } },
+                    { id: 'sr2', name: 'এস আর ২ (তানভীর)', area: 'স্টেশন রোড', pin: '', monthlyTarget: { pen: 14000, stat: 7500, khata: 220000 }, dailyTarget: { memo: 22, pen: 550, stat: 280, khata: 9000 } },
+                    { id: 'sr3', name: 'এস আর ৩ (সাজ্জাদ)', area: 'কলেজ মার্কেট', pin: '', monthlyTarget: { pen: 16000, stat: 8500, khata: 260000 }, dailyTarget: { memo: 25, pen: 650, stat: 320, khata: 10500 } },
+                    { id: 'sr4', name: 'এস আর ৪ (মেহেদী)', area: 'চকবাজার', pin: '', monthlyTarget: { pen: 13000, stat: 7000, khata: 200000 }, dailyTarget: { memo: 20, pen: 500, stat: 250, khata: 8000 } },
+                    { id: 'sr5', name: 'এস আর ৫ (আরিফুল)', area: 'নিউ মার্কেট', pin: '', monthlyTarget: { pen: 15000, stat: 8000, khata: 240000 }, dailyTarget: { memo: 24, pen: 600, stat: 300, khata: 9500 } },
+                    { id: 'sr6', name: 'এস আর ৬ (নাজমুল)', area: 'উপশহর', pin: '', monthlyTarget: { pen: 12500, stat: 6500, khata: 190000 }, dailyTarget: { memo: 20, pen: 500, stat: 250, khata: 7500 } }
+                ]
+            };
+        }
+
+        function getDefaultTodaySampleEntries(today) {
+            return {
+                sr1: {
+                    half: { memo: 14, pen: 320, stat: 160, khata: 5400, note: 'দুপুর পর্যন্ত ভালো অর্ডার', updatedAt: '০১:৩০ PM' },
+                    full: { memo: 26, pen: 620, stat: 310, khata: 10500, note: 'টার্গেট পূর্ণ হয়েছে', updatedAt: '০৭:৪৫ PM' }
+                },
+                sr2: {
+                    half: { memo: 11, pen: 260, stat: 130, khata: 4200, note: 'সকালের রাউন্ড শেষ', updatedAt: '০১:৪০ PM' }
+                },
+                sr3: {
+                    half: { memo: 15, pen: 380, stat: 180, khata: 6000, note: 'কলেজ রোডে বড় অর্ডার', updatedAt: '০১:১৫ PM' }
+                }
+            };
+        }
+
+        // ---------------------------------------------------------------------
+        // 2. GLOBAL STATE & FIREBASE SETUP
+        // ---------------------------------------------------------------------
+        let appState = {
+            adminPin: '1234',
+            srs: getDefaultTeamConfig().srs,
+            entries: {} // { "YYYY-MM-DD": { "sr1": { half: {...}, full: {...} } } }
+        };
+
+        let currentDate = getTodayStr();
+        let currentRole = null; // null | 'admin' | 'sr'
+        let loggedInSrId = 'sr1';
+        let selectedIndividualSrId = 'sr1';
+        let dashboardFilter = 'latest'; // 'latest' | 'half' | 'full'
+        let activeTab = 'dashboard';
+
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let isCloudConnected = false;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'bd-sales-tracker-6sr';
+
+        function updateSyncStatusUI(connected, labelText) {
+            isCloudConnected = connected;
+            const roleStatus = document.getElementById('roleSyncStatusText');
+            const liveDot = document.getElementById('liveSyncDot');
+            const liveText = document.getElementById('liveSyncText');
+
+            if (roleStatus) roleStatus.textContent = labelText;
+            if (liveText) liveText.textContent = labelText;
+            if (liveDot) {
+                liveDot.className = connected
+                    ? 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse'
+                    : 'w-2 h-2 rounded-full bg-amber-400';
+            }
+        }
+
+        async function initFirebaseSync() {
+            try {
+                if (typeof __firebase_config === 'undefined' || !__firebase_config) {
+                    updateSyncStatusUI(false, 'অফলাইন ডেমো মোড');
+                    populateLoginSrSelect();
+                    return;
+                }
+
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // RULE 3: Authenticate BEFORE Firestore queries
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    currentUser = user;
+                    if (!user) return;
+
+                    updateSyncStatusUI(true, 'অনলাইন সিঙ্ক চালু');
+
+                    // RULE 1: Strict Public Collection Path so Admin + 6 SRs share live data
+                    // Path: /artifacts/{appId}/public/data/sales_tracker_config
+                    // Path: /artifacts/{appId}/public/data/sales_tracker_days
+                    const configDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'sales_tracker_config', 'team');
+                    const daysColRef = collection(db, 'artifacts', appId, 'public', 'data', 'sales_tracker_days');
+
+                    // Listen to Team Config (SR names, markets, targets, PINs) in real time
+                    onSnapshot(configDocRef, async (snap) => {
+                        if (snap.exists()) {
+                            const data = snap.data();
+                            if (data && Array.isArray(data.srs) && data.srs.length === 6) {
+                                appState.srs = data.srs;
+                                appState.adminPin = data.adminPin || '1234';
+                            }
+                        } else {
+                            // Initialize default config + sample today data if DB is empty
+                            const defConfig = getDefaultTeamConfig();
+                            await setDoc(configDocRef, defConfig);
+                            const today = getTodayStr();
+                            const todayDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'sales_tracker_days', today);
+                            await setDoc(todayDocRef, getDefaultTodaySampleEntries(today));
+                        }
+                        populateLoginSrSelect();
+                        refreshActiveScreen();
+                    }, (err) => {
+                        console.error('Config snapshot error:', err);
+                        updateSyncStatusUI(false, 'সিঙ্ক সংযোগ ত্রুটি');
+                    });
+
+                    // Listen to All Daily Order Submissions in real time (RULE 2: simple collection query)
+                    onSnapshot(daysColRef, (querySnap) => {
+                        const updatedEntries = {};
+                        querySnap.forEach((docSnap) => {
+                            updatedEntries[docSnap.id] = docSnap.data();
+                        });
+                        appState.entries = updatedEntries;
+                        refreshActiveScreen();
+                    }, (err) => {
+                        console.error('Days snapshot error:', err);
+                    });
+                });
+            } catch (error) {
+                console.error('Firebase init error:', error);
+                updateSyncStatusUI(false, 'লোকাল মোড চালু');
+                populateLoginSrSelect();
+            }
+        }
+
+        function refreshActiveScreen() {
+            if (!currentRole) return;
+            updateHeaderRoleInfo();
+            if (activeTab === 'dashboard' && currentRole === 'admin') renderDashboard();
+            if (activeTab === 'entry') initEntryForm(true);
+            if (activeTab === 'individual') renderIndividualTab();
+            if (activeTab === 'targets' && currentRole === 'admin') renderTargetsTab();
+        }
+
+        // ---------------------------------------------------------------------
+        // 3. ROLE SELECTION & ACCESS CONTROL (প্রবেশ মোড)
+        // ---------------------------------------------------------------------
+        function populateLoginSrSelect() {
+            const select = document.getElementById('loginSrSelect');
+            if (!select) return;
+            const prev = select.value;
+            select.innerHTML = appState.srs.map((sr, i) =>
+                `<option value="${sr.id}">${i + 1}. ${sr.name} (${sr.area || 'মার্কেট'})</option>`
+            ).join('');
+            if (prev && appState.srs.some(s => s.id === prev)) {
+                select.value = prev;
+            }
+            onLoginSrSelectChange();
+        }
+
+        window.onLoginSrSelectChange = function () {
+            const srId = document.getElementById('loginSrSelect').value;
+            const sr = appState.srs.find(s => s.id === srId);
+            const pinBox = document.getElementById('loginSrPinContainer');
+            const pinInput = document.getElementById('loginSrPinInput');
+            pinInput.value = '';
+            if (sr && sr.pin && sr.pin.trim() !== '') {
+                pinBox.classList.remove('hidden');
+            } else {
+                pinBox.classList.add('hidden');
+            }
+        };
+
+        window.enterAsSR = function () {
+            const srId = document.getElementById('loginSrSelect').value;
+            const sr = appState.srs.find(s => s.id === srId);
+            if (!sr) return;
+
+            if (sr.pin && sr.pin.trim() !== '') {
+                const enteredPin = document.getElementById('loginSrPinInput').value.trim();
+                if (enteredPin !== sr.pin.trim()) {
+                    showToast('ভুল এস আর পিন! সঠিক পিন দিন।', true);
+                    return;
+                }
+            }
+
+            currentRole = 'sr';
+            loggedInSrId = sr.id;
+            selectedIndividualSrId = sr.id;
+
+            document.getElementById('roleSelectionScreen').classList.add('hidden');
+            document.getElementById('mainAppShell').classList.remove('hidden');
+
+            // Configure SR navigation (hide Admin tabs)
+            document.getElementById('adminTopNav').classList.add('hidden');
+            document.getElementById('adminTopNav').classList.remove('md:block');
+            document.getElementById('adminMobileNav').classList.add('hidden');
+
+            document.getElementById('srTopNav').classList.remove('hidden');
+            document.getElementById('srTopNav').classList.add('hidden', 'md:block');
+            document.getElementById('srMobileNav').classList.remove('hidden');
+
+            updateHeaderRoleInfo();
+            switchTab('entry');
+            showToast(`স্বাগতম, ${sr.name}!`);
+        };
+
+        window.enterAsAdmin = function () {
+            const enteredPin = document.getElementById('adminPinInput').value.trim();
+            const expectedPin = (appState.adminPin || '1234').trim();
+            if (enteredPin !== expectedPin) {
+                showToast('ভুল অ্যাডমিন পিন! সঠিক পিন দিন।', true);
+                return;
+            }
+
+            currentRole = 'admin';
+            document.getElementById('adminPinInput').value = '';
+            document.getElementById('roleSelectionScreen').classList.add('hidden');
+            document.getElementById('mainAppShell').classList.remove('hidden');
+
+            // Configure Admin navigation
+            document.getElementById('srTopNav').classList.add('hidden');
+            document.getElementById('srTopNav').classList.remove('md:block');
+            document.getElementById('srMobileNav').classList.add('hidden');
+
+            document.getElementById('adminTopNav').classList.remove('hidden');
+            document.getElementById('adminTopNav').classList.add('hidden', 'md:block');
+            document.getElementById('adminMobileNav').classList.remove('hidden');
+
+            updateHeaderRoleInfo();
+            switchTab('dashboard');
+            showToast('অ্যাডমিন / TSO মোডে প্রবেশ সফল!');
+        };
+
+        window.switchRoleScreen = function () {
+            currentRole = null;
+            document.getElementById('mainAppShell').classList.add('hidden');
+            document.getElementById('roleSelectionScreen').classList.remove('hidden');
+            populateLoginSrSelect();
+            lucide.createIcons();
+        };
+
+        function updateHeaderRoleInfo() {
+            const titleEl = document.getElementById('headerTitle');
+            const badgeEl = document.getElementById('roleBadge');
+            if (currentRole === 'admin') {
+                titleEl.textContent = 'সেলস ও অর্ডার ট্র্যাকার (৬ এস আর)';
+                badgeEl.textContent = 'অ্যাডমিন / TSO';
+                badgeEl.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-slate-900 shrink-0';
+            } else if (currentRole === 'sr') {
+                const sr = appState.srs.find(s => s.id === loggedInSrId);
+                titleEl.textContent = sr ? sr.name : 'এস আর প্যানেল';
+                badgeEl.textContent = 'এস আর মোড';
+                badgeEl.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400 text-slate-950 shrink-0';
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // 4. UI NAVIGATION & TOAST
+        // ---------------------------------------------------------------------
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            const content = document.getElementById('toastContent');
+            const msgEl = document.getElementById('toastMessage');
+            
+            msgEl.textContent = msg;
+            content.className = isError
+                ? 'bg-rose-700 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 border border-rose-500'
+                : 'bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 border border-slate-700';
+
+            toast.classList.remove('-translate-y-24', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.add('-translate-y-24', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 3000);
+        }
+
+        window.switchTab = function (tabName) {
+            // Security guard: SR cannot open admin-only tabs
+            if (currentRole === 'sr' && (tabName === 'dashboard' || tabName === 'targets')) {
+                tabName = 'entry';
+            }
+            activeTab = tabName;
+
+            document.querySelectorAll('.tab-section').forEach(sec => sec.classList.add('hidden'));
+            const targetSec = document.getElementById(`tab-${tabName}`);
+            if (targetSec) targetSec.classList.remove('hidden');
+
+            // Update Admin Desktop Tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = btn.dataset.tab === tabName
+                    ? 'tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-white text-blue-800 shadow-sm'
+                    : 'tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all text-blue-100 hover:bg-white/10';
+            });
+
+            // Update Admin Mobile Tabs
+            document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+                btn.className = btn.dataset.tab === tabName
+                    ? 'mobile-tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-blue-600 bg-blue-50 font-bold'
+                    : 'mobile-tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-500 font-medium';
+            });
+
+            // Update SR Desktop & Mobile Tabs
+            document.querySelectorAll('.sr-tab-btn').forEach(btn => {
+                btn.className = btn.dataset.tab === tabName
+                    ? 'sr-tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-white text-blue-800 shadow-sm'
+                    : 'sr-tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all text-blue-100 hover:bg-white/10';
+            });
+            document.querySelectorAll('.sr-mobile-tab-btn').forEach(btn => {
+                btn.className = btn.dataset.tab === tabName
+                    ? 'sr-mobile-tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-blue-600 bg-blue-50 font-bold'
+                    : 'sr-mobile-tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-500 font-medium';
+            });
+
+            if (tabName === 'dashboard') renderDashboard();
+            if (tabName === 'entry') initEntryForm(false);
+            if (tabName === 'individual') renderIndividualTab();
+            if (tabName === 'targets') renderTargetsTab();
+        };
+
+        // ---------------------------------------------------------------------
+        // 5. CORE DATA CALCULATIONS
+        // ---------------------------------------------------------------------
+        function getSrDayRecord(dateStr, srId, mode = 'latest') {
+            const dayData = appState.entries[dateStr]?.[srId] || {};
+            if (mode === 'half') {
+                return dayData.half ? { ...dayData.half, typeLabel: 'হাফ সামারি', typeCode: 'half' } : null;
+            }
+            if (mode === 'full') {
+                return dayData.full ? { ...dayData.full, typeLabel: 'ফুল সামারি', typeCode: 'full' } : null;
+            }
+            if (dayData.full) {
+                return { ...dayData.full, typeLabel: 'ফুল জমা', typeCode: 'full' };
+            }
+            if (dayData.half) {
+                return { ...dayData.half, typeLabel: 'হাফ জমা', typeCode: 'half' };
+            }
+            return null;
+        }
+
+        function getSrMonthlyCumulative(dateStr, srId) {
+            const monthPrefix = dateStr.slice(0, 7);
+            let totals = { memo: 0, pen: 0, stat: 0, khata: 0, daysActive: 0 };
+
+            Object.keys(appState.entries).forEach(dKey => {
+                if (dKey.startsWith(monthPrefix)) {
+                    const rec = getSrDayRecord(dKey, srId, 'latest');
+                    if (rec) {
+                        totals.memo += Number(rec.memo || 0);
+                        totals.pen += Number(rec.pen || 0);
+                        totals.stat += Number(rec.stat || 0);
+                        totals.khata += Number(rec.khata || 0);
+                        totals.daysActive += 1;
+                    }
+                }
+            });
+            return totals;
+        }
+
+        // ---------------------------------------------------------------------
+        // 6. TAB 1: COMBINED DASHBOARD (ADMIN)
+        // ---------------------------------------------------------------------
+        window.setDashboardFilter = function (filterMode) {
+            dashboardFilter = filterMode;
+            ['latest', 'half', 'full'].forEach(m => {
+                const btn = document.getElementById(`filter-${m}`);
+                btn.className = m === filterMode
+                    ? 'dash-filter-btn min-h-[40px] px-2.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold bg-blue-600 text-white shadow-sm transition'
+                    : 'dash-filter-btn min-h-[40px] px-2.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold text-slate-600 hover:text-slate-900 transition';
+            });
+            renderDashboard();
+        };
+
+        function renderDashboard() {
+            let teamTarget = { memo: 0, pen: 0, stat: 0, khata: 0 };
+            let teamOrder = { memo: 0, pen: 0, stat: 0, khata: 0 };
+
+            const desktopBody = document.getElementById('teamDesktopTableBody');
+            const mobileCards = document.getElementById('teamMobileCards');
+            desktopBody.innerHTML = '';
+            mobileCards.innerHTML = '';
+
+            appState.srs.forEach((sr, index) => {
+                const t = sr.dailyTarget;
+                teamTarget.memo += Number(t.memo || 0);
+                teamTarget.pen += Number(t.pen || 0);
+                teamTarget.stat += Number(t.stat || 0);
+                teamTarget.khata += Number(t.khata || 0);
+
+                const dayObj = appState.entries[currentDate]?.[sr.id] || {};
+                const rec = getSrDayRecord(currentDate, sr.id, dashboardFilter);
+                const o = rec ? {
+                    memo: Number(rec.memo || 0),
+                    pen: Number(rec.pen || 0),
+                    stat: Number(rec.stat || 0),
+                    khata: Number(rec.khata || 0)
+                } : { memo: 0, pen: 0, stat: 0, khata: 0 };
+
+                teamOrder.memo += o.memo;
+                teamOrder.pen += o.pen;
+                teamOrder.stat += o.stat;
+                teamOrder.khata += o.khata;
+
+                const sfMemo = t.memo - o.memo;
+                const sfPen = t.pen - o.pen;
+                const sfStat = t.stat - o.stat;
+                const sfKhata = t.khata - o.khata;
+
+                // Submission status badge
+                let statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-600 border border-rose-200">বাকি</span>`;
+                if (dayObj.full) {
+                    statusBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">ফুল জমা</span>`;
+                } else if (dayObj.half) {
+                    statusBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">হাফ জমা</span>`;
+                }
+
+                // Desktop Row
+                desktopBody.innerHTML += `
+                    <tr class="hover:bg-slate-50/90 transition">
+                        <td class="py-3 px-4">
+                            <div class="font-bold text-slate-900">${index + 1}. ${sr.name}</div>
+                            <div class="text-xs text-slate-500">${sr.area || ''} ${rec?.updatedAt ? `• ${rec.updatedAt}` : ''}</div>
+                        </td>
+                        <td class="py-3 px-3">${statusBadge}</td>
+                        <td class="py-3 px-3 text-center num-font">
+                            <span class="font-bold text-slate-900">${o.memo}</span> / <span class="text-slate-500">${t.memo}</span>
+                            <div class="text-[11px] ${sfMemo > 0 ? 'text-rose-600' : 'text-emerald-600'} font-semibold">
+                                ${sfMemo > 0 ? `বাকি: ${sfMemo}` : `পূর্ণ (+${Math.abs(sfMemo)})`}
+                            </div>
+                        </td>
+                        <td class="py-3 px-3 text-right num-font">
+                            <div><span class="font-bold text-blue-700">${fmtNum(o.pen)}</span> <span class="text-xs text-slate-400">/ ${fmtNum(t.pen)}</span></div>
+                            <div class="text-[11px] ${sfPen > 0 ? 'text-rose-600' : 'text-emerald-600'} font-semibold">
+                                ${sfPen > 0 ? `শর্টফল: ${fmtNum(sfPen)}` : `অতিরিক্ত: +${fmtNum(Math.abs(sfPen))}`}
+                            </div>
+                        </td>
+                        <td class="py-3 px-3 text-right num-font">
+                            <div><span class="font-bold text-amber-700">${fmtNum(o.stat)}</span> <span class="text-xs text-slate-400">/ ${fmtNum(t.stat)}</span></div>
+                            <div class="text-[11px] ${sfStat > 0 ? 'text-rose-600' : 'text-emerald-600'} font-semibold">
+                                ${sfStat > 0 ? `শর্টফল: ${fmtNum(sfStat)}` : `অতিরিক্ত: +${fmtNum(Math.abs(sfStat))}`}
+                            </div>
+                        </td>
+                        <td class="py-3 px-3 text-right num-font">
+                            <div><span class="font-bold text-emerald-700">৳${fmtNum(o.khata)}</span> <span class="text-xs text-slate-400">/ ৳${fmtNum(t.khata)}</span></div>
+                            <div class="text-[11px] ${sfKhata > 0 ? 'text-rose-600' : 'text-emerald-600'} font-semibold">
+                                ${sfKhata > 0 ? `শর্টফল: ৳${fmtNum(sfKhata)}` : `অতিরিক্ত: +৳${fmtNum(Math.abs(sfKhata))}`}
+                            </div>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <div class="flex items-center justify-center gap-1.5">
+                                <button onclick="quickEditSr('${sr.id}')" class="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700" title="অর্ডার এন্ট্রি / এডিট">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="viewIndividualSr('${sr.id}')" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700" title="বিস্তারিত দেখুন">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+
+                // Mobile Card
+                mobileCards.innerHTML += `
+                    <div class="p-4 space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-bold text-slate-900 text-base">${index + 1}. ${sr.name}</span>
+                                    ${statusBadge}
+                                </div>
+                                <p class="text-xs text-slate-500 mt-0.5">মেমো: <strong class="text-slate-800 num-font">${o.memo}</strong> / ${t.memo} টি ${rec?.updatedAt ? `• সময়: ${rec.updatedAt}` : ''}</p>
+                            </div>
+                            <div class="flex gap-1.5 shrink-0">
+                                <button onclick="quickEditSr('${sr.id}')" class="min-h-[40px] px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 text-xs font-bold flex items-center gap-1">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> এন্ট্রি
+                                </button>
+                                <button onclick="viewIndividualSr('${sr.id}')" class="min-h-[40px] px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">
+                                    হিসাব
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-1.5 text-xs">
+                            <div class="bg-blue-50/70 p-2 rounded-xl border border-blue-100 min-w-0">
+                                <div class="text-blue-800 font-semibold truncate">কলম (পিস)</div>
+                                <div class="font-bold text-slate-900 text-xs sm:text-sm num-font mt-0.5 truncate">${fmtNum(o.pen)} <span class="text-[10px] font-normal text-slate-500">/${fmtNum(t.pen)}</span></div>
+                                <div class="text-[11px] font-bold num-font mt-0.5 truncate ${sfPen > 0 ? 'text-rose-600' : 'text-emerald-600'}">
+                                    ${sfPen > 0 ? `বাকি: ${fmtNum(sfPen)}` : `+${fmtNum(Math.abs(sfPen))}`}
+                                </div>
+                            </div>
+
+                            <div class="bg-amber-50/70 p-2 rounded-xl border border-amber-100 min-w-0">
+                                <div class="text-amber-800 font-semibold truncate">স্টেশনারি</div>
+                                <div class="font-bold text-slate-900 text-xs sm:text-sm num-font mt-0.5 truncate">${fmtNum(o.stat)} <span class="text-[10px] font-normal text-slate-500">/${fmtNum(t.stat)}</span></div>
+                                <div class="text-[11px] font-bold num-font mt-0.5 truncate ${sfStat > 0 ? 'text-rose-600' : 'text-emerald-600'}">
+                                    ${sfStat > 0 ? `বাকি: ${fmtNum(sfStat)}` : `+${fmtNum(Math.abs(sfStat))}`}
+                                </div>
+                            </div>
+
+                            <div class="bg-emerald-50/70 p-2 rounded-xl border border-emerald-100 min-w-0">
+                                <div class="text-emerald-800 font-semibold truncate">খাতা (টাকা)</div>
+                                <div class="font-bold text-slate-900 text-xs sm:text-sm num-font mt-0.5 truncate">৳${fmtNum(o.khata)}</div>
+                                <div class="text-[11px] font-bold num-font mt-0.5 truncate ${sfKhata > 0 ? 'text-rose-600' : 'text-emerald-600'}">
+                                    ${sfKhata > 0 ? `বাকি: ৳${fmtNum(sfKhata)}` : `+৳${fmtNum(Math.abs(sfKhata))}`}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Grand Total KPI Updates
+            const teamSfMemo = teamTarget.memo - teamOrder.memo;
+            const teamSfPen = teamTarget.pen - teamOrder.pen;
+            const teamSfStat = teamTarget.stat - teamOrder.stat;
+            const teamSfKhata = teamTarget.khata - teamOrder.khata;
+
+            const memoPct = teamTarget.memo > 0 ? Math.round((teamOrder.memo / teamTarget.memo) * 100) : 0;
+            const penPct = teamTarget.pen > 0 ? Math.round((teamOrder.pen / teamTarget.pen) * 100) : 0;
+            const statPct = teamTarget.stat > 0 ? Math.round((teamOrder.stat / teamTarget.stat) * 100) : 0;
+            const khataPct = teamTarget.khata > 0 ? Math.round((teamOrder.khata / teamTarget.khata) * 100) : 0;
+
+            document.getElementById('team-memo-order').textContent = fmtNum(teamOrder.memo);
+            document.getElementById('team-memo-pct').textContent = `(${memoPct}%)`;
+            document.getElementById('team-memo-target').textContent = fmtNum(teamTarget.memo);
+            const memoSfEl = document.getElementById('team-memo-shortfall');
+            memoSfEl.textContent = teamSfMemo > 0 ? `বাকি: ${fmtNum(teamSfMemo)} টি` : `পূর্ণ (+${fmtNum(Math.abs(teamSfMemo))})`;
+            memoSfEl.className = `font-semibold num-font ${teamSfMemo > 0 ? 'text-rose-600' : 'text-emerald-600'}`;
+
+            document.getElementById('team-pen-order').textContent = fmtNum(teamOrder.pen);
+            document.getElementById('team-pen-pct').textContent = `(${penPct}%)`;
+            document.getElementById('team-pen-target').textContent = `${fmtNum(teamTarget.pen)} পিস`;
+            document.getElementById('team-pen-bar').style.width = `${Math.min(100, penPct)}%`;
+            const penSfEl = document.getElementById('team-pen-shortfall');
+            penSfEl.textContent = teamSfPen > 0 ? `শর্টফল: ${fmtNum(teamSfPen)}` : `অতিরিক্ত: +${fmtNum(Math.abs(teamSfPen))}`;
+            penSfEl.className = `font-semibold num-font ${teamSfPen > 0 ? 'text-rose-600' : 'text-emerald-600'}`;
+
+            document.getElementById('team-stat-order').textContent = fmtNum(teamOrder.stat);
+            document.getElementById('team-stat-pct').textContent = `(${statPct}%)`;
+            document.getElementById('team-stat-target').textContent = `${fmtNum(teamTarget.stat)} পিস`;
+            document.getElementById('team-stat-bar').style.width = `${Math.min(100, statPct)}%`;
+            const statSfEl = document.getElementById('team-stat-shortfall');
+            statSfEl.textContent = teamSfStat > 0 ? `শর্টফল: ${fmtNum(teamSfStat)}` : `অতিরিক্ত: +${fmtNum(Math.abs(teamSfStat))}`;
+            statSfEl.className = `font-semibold num-font ${teamSfStat > 0 ? 'text-rose-600' : 'text-emerald-600'}`;
+
+            document.getElementById('team-khata-order').textContent = fmtNum(teamOrder.khata);
+            document.getElementById('team-khata-pct').textContent = `(${khataPct}%)`;
+            document.getElementById('team-khata-target').textContent = `৳${fmtNum(teamTarget.khata)}`;
+            document.getElementById('team-khata-bar').style.width = `${Math.min(100, khataPct)}%`;
+            const khataSfEl = document.getElementById('team-khata-shortfall');
+            khataSfEl.textContent = teamSfKhata > 0 ? `শর্টফল: ৳${fmtNum(teamSfKhata)}` : `অতিরিক্ত: +৳${fmtNum(Math.abs(teamSfKhata))}`;
+            khataSfEl.className = `font-semibold num-font ${teamSfKhata > 0 ? 'text-rose-600' : 'text-emerald-600'}`;
+
+            document.getElementById('teamDesktopTableFoot').innerHTML = `
+                <tr>
+                    <td class="py-3.5 px-4" colspan="2">সর্বমোট (৬ জন এস আর একত্রে)</td>
+                    <td class="py-3.5 px-3 text-center num-font">${fmtNum(teamOrder.memo)} / ${fmtNum(teamTarget.memo)}</td>
+                    <td class="py-3.5 px-3 text-right num-font text-blue-800">
+                        ${fmtNum(teamOrder.pen)} / ${fmtNum(teamTarget.pen)}
+                        <div class="text-xs ${teamSfPen > 0 ? 'text-rose-600' : 'text-emerald-700'}">
+                            ${teamSfPen > 0 ? `মোট শর্টফল: ${fmtNum(teamSfPen)}` : `অতিরিক্ত: +${fmtNum(Math.abs(teamSfPen))}`}
+                        </div>
+                    </td>
+                    <td class="py-3.5 px-3 text-right num-font text-amber-800">
+                        ${fmtNum(teamOrder.stat)} / ${fmtNum(teamTarget.stat)}
+                        <div class="text-xs ${teamSfStat > 0 ? 'text-rose-600' : 'text-emerald-700'}">
+                            ${teamSfStat > 0 ? `মোট শর্টফল: ${fmtNum(teamSfStat)}` : `অতিরিক্ত: +${fmtNum(Math.abs(teamSfStat))}`}
+                        </div>
+                    </td>
+                    <td class="py-3.5 px-3 text-right num-font text-emerald-800">
+                        ৳${fmtNum(teamOrder.khata)} / ৳${fmtNum(teamTarget.khata)}
+                        <div class="text-xs ${teamSfKhata > 0 ? 'text-rose-600' : 'text-emerald-700'}">
+                            ${teamSfKhata > 0 ? `মোট শর্টফল: ৳${fmtNum(teamSfKhata)}` : `অতিরিক্ত: +৳${fmtNum(Math.abs(teamSfKhata))}`}
+                        </div>
+                    </td>
+                    <td></td>
+                </tr>
+            `;
+
+            document.getElementById('dashTableSubtitle').textContent = `তারিখ: ${currentDate} • সকল এস আর-এর লাইভ টার্গেট, অর্ডার, মেমো ও শর্টফল`;
+            lucide.createIcons();
+        }
+
+        window.quickEditSr = function (srId) {
+            selectedIndividualSrId = srId;
+            switchTab('entry');
+            document.getElementById('entrySrSelect').value = srId;
+            onEntryFormContextChange();
+        };
+
+        window.viewIndividualSr = function (srId) {
+            selectedIndividualSrId = srId;
+            switchTab('individual');
+        };
+
+        // ---------------------------------------------------------------------
+        // 7. TAB 2: ORDER ENTRY FORM (SR & ADMIN)
+        // ---------------------------------------------------------------------
+        function initEntryForm(preserveTypedValues = false) {
+            const select = document.getElementById('entrySrSelect');
+            const editTargetLink = document.getElementById('formEditTargetLink');
+
+            if (currentRole === 'sr') {
+                const sr = appState.srs.find(s => s.id === loggedInSrId) || appState.srs[0];
+                select.innerHTML = `<option value="${sr.id}">${sr.name} (${sr.area || 'মার্কেট'})</option>`;
+                select.value = sr.id;
+                select.disabled = true;
+                if (editTargetLink) editTargetLink.classList.add('hidden');
+            } else {
+                const prevVal = select.value || selectedIndividualSrId;
+                select.innerHTML = appState.srs.map((sr, i) =>
+                    `<option value="${sr.id}">${i + 1}. ${sr.name} (${sr.area || 'এরিয়া'})</option>`
+                ).join('');
+                select.disabled = false;
+                if (prevVal && appState.srs.some(s => s.id === prevVal)) select.value = prevVal;
+                if (editTargetLink) editTargetLink.classList.remove('hidden');
+            }
+
+            document.getElementById('entryDateInput').value = currentDate;
+            if (!preserveTypedValues) {
+                onEntryFormContextChange();
+            } else {
+                updateTargetReferenceOnly();
+                updateLiveFormCalculations();
+            }
+        }
+
+        function updateTargetReferenceOnly() {
+            const srId = document.getElementById('entrySrSelect').value;
+            const sr = appState.srs.find(s => s.id === srId);
+            if (!sr) return;
+            document.getElementById('formTargetTitle').textContent = `${sr.name}-এর আজকের টার্গেট`;
+            document.getElementById('ref-memo-target').textContent = `${fmtNum(sr.dailyTarget.memo)} টি`;
+            document.getElementById('ref-pen-target').textContent = `${fmtNum(sr.dailyTarget.pen)} পিস`;
+            document.getElementById('ref-stat-target').textContent = `${fmtNum(sr.dailyTarget.stat)} পিস`;
+            document.getElementById('ref-khata-target').textContent = `৳ ${fmtNum(sr.dailyTarget.khata)}`;
+        }
+
+        window.onEntryFormContextChange = function () {
+            const srId = document.getElementById('entrySrSelect').value;
+            const dateStr = document.getElementById('entryDateInput').value || currentDate;
+            const summaryType = document.querySelector('input[name="summaryType"]:checked').value;
+
+            updateTargetReferenceOnly();
+
+            const dayData = appState.entries[dateStr]?.[srId] || {};
+            document.getElementById('formHalfStatusHint').textContent = dayData.half
+                ? `জমা আছে (${dayData.half.updatedAt})`
+                : 'দুপুর পর্যন্ত অর্ডার ও মেমো';
+            document.getElementById('formFullStatusHint').textContent = dayData.full
+                ? `জমা আছে (${dayData.full.updatedAt})`
+                : 'সারাদিনের চূড়ান্ত অর্ডার';
+
+            const existing = dayData[summaryType];
+            if (existing) {
+                document.getElementById('inputMemo').value = existing.memo;
+                document.getElementById('inputPen').value = existing.pen;
+                document.getElementById('inputStat').value = existing.stat;
+                document.getElementById('inputKhata').value = existing.khata;
+                document.getElementById('inputNote').value = existing.note || '';
+            } else {
+                const halfData = summaryType === 'full' ? dayData.half : null;
+                document.getElementById('inputMemo').value = halfData ? halfData.memo : '';
+                document.getElementById('inputPen').value = halfData ? halfData.pen : '';
+                document.getElementById('inputStat').value = halfData ? halfData.stat : '';
+                document.getElementById('inputKhata').value = halfData ? halfData.khata : '';
+                document.getElementById('inputNote').value = '';
+            }
+
+            updateLiveFormCalculations();
+        };
+
+        window.updateLiveFormCalculations = function () {
+            const srId = document.getElementById('entrySrSelect').value;
+            const sr = appState.srs.find(s => s.id === srId);
+            if (!sr) return;
+
+            const memoVal = Number(document.getElementById('inputMemo').value || 0);
+            const penVal = Number(document.getElementById('inputPen').value || 0);
+            const statVal = Number(document.getElementById('inputStat').value || 0);
+            const khataVal = Number(document.getElementById('inputKhata').value || 0);
+
+            updateShortfallBadge('live-memo-shortfall', sr.dailyTarget.memo - memoVal, 'টি');
+            updateShortfallBadge('live-pen-shortfall', sr.dailyTarget.pen - penVal, 'পিস');
+            updateShortfallBadge('live-stat-shortfall', sr.dailyTarget.stat - statVal, 'পিস');
+            updateShortfallBadge('live-khata-shortfall', sr.dailyTarget.khata - khataVal, 'টাকা', true);
+        };
+
+        function updateShortfallBadge(elId, diff, unit, isCurrency = false) {
+            const el = document.getElementById(elId);
+            if (diff > 0) {
+                el.className = 'text-xs font-bold px-2.5 py-0.5 rounded-lg bg-rose-100 text-rose-700 num-font';
+                el.textContent = isCurrency ? `শর্টফল: ৳${fmtNum(diff)}` : `শর্টফল: ${fmtNum(diff)} ${unit}`;
+            } else {
+                el.className = 'text-xs font-bold px-2.5 py-0.5 rounded-lg bg-emerald-100 text-emerald-700 num-font';
+                const extra = Math.abs(diff);
+                el.textContent = extra === 0
+                    ? 'টার্গেট ১০০% পূর্ণ!'
+                    : (isCurrency ? `টার্গেট পূর্ণ (+৳${fmtNum(extra)})` : `টার্গেট পূর্ণ (+${fmtNum(extra)} ${unit})`);
+            }
+        }
+
+        window.saveOrderEntry = async function (e) {
+            e.preventDefault();
+            const srId = currentRole === 'sr' ? loggedInSrId : document.getElementById('entrySrSelect').value;
+            const dateStr = document.getElementById('entryDateInput').value;
+            const summaryType = document.querySelector('input[name="summaryType"]:checked').value;
+
+            const memo = Number(document.getElementById('inputMemo').value || 0);
+            const pen = Number(document.getElementById('inputPen').value || 0);
+            const stat = Number(document.getElementById('inputStat').value || 0);
+            const khata = Number(document.getElementById('inputKhata').value || 0);
+            const note = document.getElementById('inputNote').value.trim();
+
+            const nowTime = new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
+            const entryPayload = { memo, pen, stat, khata, note, updatedAt: nowTime };
+
+            if (!appState.entries[dateStr]) appState.entries[dateStr] = {};
+            if (!appState.entries[dateStr][srId]) appState.entries[dateStr][srId] = {};
+            appState.entries[dateStr][srId][summaryType] = entryPayload;
+
+            const saveBtn = document.getElementById('saveEntryBtn');
+            saveBtn.disabled = true;
+
+            try {
+                if (db && currentUser) {
+                    const dayDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'sales_tracker_days', dateStr);
+                    await setDoc(dayDocRef, {
+                        [srId]: {
+                            [summaryType]: entryPayload
+                        }
+                    }, { merge: true });
+                }
+                currentDate = dateStr;
+                document.getElementById('globalDateInput').value = currentDate;
+
+                const sr = appState.srs.find(s => s.id === srId);
+                const typeText = summaryType === 'half' ? 'হাফ সামারি' : 'ফুল সামারি';
+                showToast(`${sr.name}-এর ${typeText} লাইভ সেভ হয়েছে!`);
+            } catch (err) {
+                console.error('Save entry error:', err);
+                showToast('সেভ করতে সমস্যা হয়েছে, আবার চেষ্টা করুন!', true);
+            } finally {
+                saveBtn.disabled = false;
+            }
+        };
+
+        // ---------------------------------------------------------------------
+        // 8. TAB 3: INDIVIDUAL SR REPORT (ADMIN & SR)
+        // ---------------------------------------------------------------------
+        function renderIndividualTab() {
+            const pillsWrapper = document.getElementById('individualSrPillsWrapper');
+            const pillsContainer = document.getElementById('individualSrPills');
+
+            if (currentRole === 'sr') {
+                selectedIndividualSrId = loggedInSrId;
+                pillsWrapper.classList.add('hidden');
+            } else {
+                pillsWrapper.classList.remove('hidden');
+                pillsContainer.innerHTML = appState.srs.map((sr, i) => {
+                    const active = sr.id === selectedIndividualSrId;
+                    return `
+                        <button onclick="selectIndividualSr('${sr.id}')" class="shrink-0 px-3.5 py-2 rounded-xl text-xs md:text-sm font-bold transition ${
+                            active
+                                ? 'bg-blue-600 text-white shadow-sm'
+                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        }">
+                            ${i + 1}. ${sr.name}
+                        </button>
+                    `;
+                }).join('');
+            }
+
+            const sr = appState.srs.find(s => s.id === selectedIndividualSrId) || appState.srs[0];
+            const dayData = appState.entries[currentDate]?.[sr.id] || {};
+            const half = dayData.half || null;
+            const full = dayData.full || null;
+
+            const monthlyCum = getSrMonthlyCumulative(currentDate, sr.id);
+            const dt = sr.dailyTarget;
+            const mt = sr.monthlyTarget;
+
+            const container = document.getElementById('individualDetailContainer');
+            container.innerHTML = `
+                <!-- SR Header Banner -->
+                <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-lg md:text-xl font-bold text-slate-900">${sr.name}</h2>
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">${sr.area || 'মার্কেট'}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">তারিখ: <strong class="num-font">${currentDate}</strong> • ডেইলি ও মাসিক পারফরম্যান্স রিপোর্ট</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="quickEditSr('${sr.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i> অর্ডার এন্ট্রি
+                        </button>
+                        <button onclick="copyIndividualWhatsApp('${sr.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                            <i data-lucide="share-2" class="w-4 h-4"></i> রিপোর্ট কপি
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Today's Half Summary vs Full Summary Comparison -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-amber-200/90">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3">
+                            <span class="font-bold text-sm text-amber-800 flex items-center gap-1.5">
+                                <i data-lucide="sun" class="w-4 h-4 text-amber-500"></i> হাফ সামারি (দুপুর)
+                            </span>
+                            <span class="text-xs text-slate-400 num-font">${half ? `আপডেট: ${half.updatedAt}` : 'এন্ট্রি দেওয়া হয়নি'}</span>
+                        </div>
+                        ${half ? renderSummaryMiniGrid(half, dt) : `<p class="text-xs text-slate-400 py-6 text-center">আজকের দুপুরের হাফ সামারি এখনো বসানো হয়নি।</p>`}
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-emerald-200/90">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3">
+                            <span class="font-bold text-sm text-emerald-800 flex items-center gap-1.5">
+                                <i data-lucide="moon" class="w-4 h-4 text-emerald-600"></i> ফুল সামারি (দিনশেষে)
+                            </span>
+                            <span class="text-xs text-slate-400 num-font">${full ? `আপডেট: ${full.updatedAt}` : 'এন্ট্রি দেওয়া হয়নি'}</span>
+                        </div>
+                        ${full ? renderSummaryMiniGrid(full, dt) : `<p class="text-xs text-slate-400 py-6 text-center">দিনশেষের ফুল সামারি এখনো বসানো হয়নি।</p>`}
+                    </div>
+                </div>
+
+                <!-- Monthly Target vs Cumulative Achievement -->
+                <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-800">মাসিক টার্গেট বনাম মোট অর্জন (${currentDate.slice(0, 7)})</h3>
+                            <p class="text-xs text-slate-500">এই মাসে মোট <strong class="num-font">${monthlyCum.daysActive}</strong> দিনের অর্ডার হিসাব যুক্ত হয়েছে</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        ${renderMonthlyProgressCard('১. কলম (পিস)', monthlyCum.pen, mt.pen, 'পিস', 'blue')}
+                        ${renderMonthlyProgressCard('২. স্টেশনারি (পিস)', monthlyCum.stat, mt.stat, 'পিস', 'amber')}
+                        ${renderMonthlyProgressCard('৩. খাতা (টাকা)', monthlyCum.khata, mt.khata, 'টাকা', 'emerald', true)}
+                    </div>
+                </div>
+            `;
+
+            lucide.createIcons();
+        }
+
+        function renderSummaryMiniGrid(data, target) {
+            const sfMemo = target.memo - data.memo;
+            const sfPen = target.pen - data.pen;
+            const sfStat = target.stat - data.stat;
+            const sfKhata = target.khata - data.khata;
+
+            return `
+                <div class="space-y-2.5 text-xs">
+                    <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl">
+                        <span class="font-semibold text-slate-600">অর্ডার মেমো সংখ্যা:</span>
+                        <span class="num-font font-bold text-slate-900">${data.memo} / ${target.memo} টি <span class="${sfMemo > 0 ? 'text-rose-600' : 'text-emerald-600'}">(${sfMemo > 0 ? `বাকি ${sfMemo}` : 'পূর্ণ'})</span></span>
+                    </div>
+                    <div class="flex justify-between items-center bg-blue-50/60 p-2.5 rounded-xl">
+                        <span class="font-semibold text-blue-900">কলম (পিস):</span>
+                        <span class="num-font font-bold text-blue-950">${fmtNum(data.pen)} / ${fmtNum(target.pen)} <span class="${sfPen > 0 ? 'text-rose-600' : 'text-emerald-600'}">(${sfPen > 0 ? `শর্টফল ${fmtNum(sfPen)}` : `+${fmtNum(Math.abs(sfPen))}`})</span></span>
+                    </div>
+                    <div class="flex justify-between items-center bg-amber-50/60 p-2.5 rounded-xl">
+                        <span class="font-semibold text-amber-900">স্টেশনারি (পিস):</span>
+                        <span class="num-font font-bold text-amber-950">${fmtNum(data.stat)} / ${fmtNum(target.stat)} <span class="${sfStat > 0 ? 'text-rose-600' : 'text-emerald-600'}">(${sfStat > 0 ? `শর্টফল ${fmtNum(sfStat)}` : `+${fmtNum(Math.abs(sfStat))}`})</span></span>
+                    </div>
+                    <div class="flex justify-between items-center bg-emerald-50/60 p-2.5 rounded-xl">
+                        <span class="font-semibold text-emerald-900">খাতা (টাকা):</span>
+                        <span class="num-font font-bold text-emerald-950">৳${fmtNum(data.khata)} / ৳${fmtNum(target.khata)} <span class="${sfKhata > 0 ? 'text-rose-600' : 'text-emerald-600'}">(${sfKhata > 0 ? `শর্টফল ৳${fmtNum(sfKhata)}` : `+৳${fmtNum(Math.abs(sfKhata))}`})</span></span>
+                    </div>
+                    ${data.note ? `<div class="text-[11px] text-slate-500 italic pt-1">নোট: ${data.note}</div>` : ''}
+                </div>
+            `;
+        }
+
+        function renderMonthlyProgressCard(title, achieved, target, unit, color, isCurrency = false) {
+            const pct = target > 0 ? Math.min(100, Math.round((achieved / target) * 100)) : 0;
+            const remaining = Math.max(0, target - achieved);
+            const prefix = isCurrency ? '৳' : '';
+            const suffix = isCurrency ? '' : ` ${unit}`;
+
+            const colorMap = {
+                blue: { bg: 'bg-blue-50/70', border: 'border-blue-100', text: 'text-blue-800', bar: 'bg-blue-600' },
+                amber: { bg: 'bg-amber-50/70', border: 'border-amber-100', text: 'text-amber-800', bar: 'bg-amber-500' },
+                emerald: { bg: 'bg-emerald-50/70', border: 'border-emerald-100', text: 'text-emerald-800', bar: 'bg-emerald-600' }
+            }[color];
+
+            return `
+                <div class="${colorMap.bg} border ${colorMap.border} p-3.5 rounded-2xl space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold ${colorMap.text}">${title}</span>
+                        <span class="text-xs font-bold ${colorMap.text} num-font">${pct}%</span>
+                    </div>
+                    <div class="text-base font-bold text-slate-900 num-font">
+                        ${prefix}${fmtNum(achieved)}${suffix}
+                        <span class="text-xs font-normal text-slate-500">/ ${prefix}${fmtNum(target)}</span>
+                    </div>
+                    <div class="w-full bg-white h-2 rounded-full overflow-hidden">
+                        <div class="${colorMap.bar} h-full rounded-full" style="width: ${pct}%"></div>
+                    </div>
+                    <div class="text-[11px] text-slate-600 flex justify-between num-font">
+                        <span>মাসিক বাকি:</span>
+                        <strong class="text-rose-600">${prefix}${fmtNum(remaining)}${suffix}</strong>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.selectIndividualSr = function (srId) {
+            selectedIndividualSrId = srId;
+            renderIndividualTab();
+        };
+
+        // ---------------------------------------------------------------------
+        // 9. TAB 4: TARGETS & 6 SR SETUP (ADMIN ONLY)
+        // ---------------------------------------------------------------------
+        function renderTargetsTab() {
+            document.getElementById('settingAdminPin').value = appState.adminPin || '1234';
+            const grid = document.getElementById('targetSetupGrid');
+            grid.innerHTML = appState.srs.map((sr, index) => `
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 space-y-3.5">
+                    <div class="flex items-start gap-2.5 border-b border-slate-100 pb-3">
+                        <span class="w-7 h-7 rounded-xl bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-4 num-font">${index + 1}</span>
+                        <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase">এস আর নাম</label>
+                                <input type="text" id="name-${sr.id}" value="${sr.name}" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase">মার্কেট / এরিয়া</label>
+                                <input type="text" id="area-${sr.id}" value="${sr.area || ''}" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm text-slate-700 focus:ring-2 focus:ring-blue-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase">ঐচ্ছিক পিন (PIN)</label>
+                                <input type="text" inputmode="numeric" maxlength="6" id="pin-${sr.id}" value="${sr.pin || ''}" placeholder="খালি=পিন ছাড়া" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm font-bold num-font text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Daily Target Row -->
+                    <div>
+                        <div class="text-xs font-bold text-blue-800 mb-1.5 flex items-center gap-1">
+                            <i data-lucide="sun" class="w-3.5 h-3.5"></i> ডেইলি টার্গেট (প্রতিদিনের টার্গেট)
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <div>
+                                <label class="block text-[11px] text-slate-500">মেমো (টি)</label>
+                                <input type="number" id="d-memo-${sr.id}" value="${sr.dailyTarget.memo}" min="0" class="w-full bg-blue-50/40 border border-blue-200 rounded-lg px-2.5 py-1.5 text-sm font-bold num-font">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-500">কলম (পিস)</label>
+                                <input type="number" id="d-pen-${sr.id}" value="${sr.dailyTarget.pen}" min="0" class="w-full bg-blue-50/40 border border-blue-200 rounded-lg px-2.5 py-1.5 text-sm font-bold num-font">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-500">স্টেশনারি (পিস)</label>
+                                <input type="number" id="d-stat-${sr.id}" value="${sr.dailyTarget.stat}" min="0" class="w-full bg-blue-50/40 border border-blue-200 rounded-lg px-2.5 py-1.5 text-sm font-bold num-font">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-500">খাতা (টাকা)</label>
+                                <input type="number" id="d-khata-${sr.id}" value="${sr.dailyTarget.khata}" min="0" class="w-full bg-blue-50/40 border border-blue-200 rounded-lg px-2.5 py-1.5 text-sm font-bold num-font">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Target Row -->
+                    <div>
+                        <div class="text-xs font-bold text-emerald-800 mb-1.5 flex items-center gap-1">
+                            <i data-lucide="calendar" class="w-3.5 h-3.5"></i> মাসিক টার্গেট (পুরো মাসের টার্গেট)
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="block text-[11px] text-slate-500">কলম (পিস)</label>
+                                <input type="number" id="m-pen-${sr.id}" value="${sr.monthlyTarget.pen}" min="0" class="w-full bg-emerald-50/40 border border-emerald-200 rounded-lg px-2.5 py-1.5 text-sm font-bold num-font">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-500">স্টেশনারি (পিস)</label>
+                                <input type="number" id="m-stat-${sr.id}" value="${sr.monthlyTarget.stat}" min="0" class="w-full bg-emerald-50/40 border border-emerald-200 rounded-lg px-2.5 py-1.5 text-sm font-bold num-font">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-500">খাতা (টাকা)</label>
+                                <input type="number" id="m-khata-${sr.id}" value="${sr.monthlyTarget.khata}" min="0" class="w-full bg-emerald-50/40 border border-emerald-200 rounded-lg px-2.5 py-1.5 text-sm font-bold num-font">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        window.copySr1TargetToAll = function () {
+            const firstId = appState.srs[0].id;
+            const memo = document.getElementById(`d-memo-${firstId}`).value;
+            const pen = document.getElementById(`d-pen-${firstId}`).value;
+            const stat = document.getElementById(`d-stat-${firstId}`).value;
+            const khata = document.getElementById(`d-khata-${firstId}`).value;
+
+            appState.srs.forEach((sr, idx) => {
+                if (idx > 0) {
+                    document.getElementById(`d-memo-${sr.id}`).value = memo;
+                    document.getElementById(`d-pen-${sr.id}`).value = pen;
+                    document.getElementById(`d-stat-${sr.id}`).value = stat;
+                    document.getElementById(`d-khata-${sr.id}`).value = khata;
+                }
+            });
+            showToast('১ম এস আর-এর ডেইলি টার্গেট বাকি ৫ জনে বসানো হয়েছে। সেভ বাটনে ক্লিক করুন।');
+        };
+
+        async function persistConfigToCloud() {
+            if (db && currentUser) {
+                const configDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'sales_tracker_config', 'team');
+                await setDoc(configDocRef, {
+                    adminPin: appState.adminPin,
+                    srs: appState.srs
+                }, { merge: true });
+            }
+        }
+
+        window.saveAdminPinSetting = async function () {
+            const newPin = document.getElementById('settingAdminPin').value.trim();
+            if (newPin.length < 4) {
+                showToast('অ্যাডমিন পিন কমপক্ষে ৪ সংখ্যার হতে হবে!', true);
+                return;
+            }
+            appState.adminPin = newPin;
+            await persistConfigToCloud();
+            showToast('অ্যাডমিন পিন সফলভাবে আপডেট হয়েছে!');
+        };
+
+        window.saveAllTargets = async function () {
+            appState.srs.forEach(sr => {
+                const nameVal = document.getElementById(`name-${sr.id}`).value.trim();
+                if (nameVal) sr.name = nameVal;
+                sr.area = document.getElementById(`area-${sr.id}`).value.trim();
+                sr.pin = document.getElementById(`pin-${sr.id}`).value.trim();
+
+                sr.dailyTarget = {
+                    memo: Number(document.getElementById(`d-memo-${sr.id}`).value || 0),
+                    pen: Number(document.getElementById(`d-pen-${sr.id}`).value || 0),
+                    stat: Number(document.getElementById(`d-stat-${sr.id}`).value || 0),
+                    khata: Number(document.getElementById(`d-khata-${sr.id}`).value || 0)
+                };
+
+                sr.monthlyTarget = {
+                    pen: Number(document.getElementById(`m-pen-${sr.id}`).value || 0),
+                    stat: Number(document.getElementById(`m-stat-${sr.id}`).value || 0),
+                    khata: Number(document.getElementById(`m-khata-${sr.id}`).value || 0)
+                };
+            });
+
+            await persistConfigToCloud();
+            showToast('৬ জন এস আর-এর নাম ও টার্গেট ক্লাউডে সেভ হয়েছে!');
+        };
+
+        // ---------------------------------------------------------------------
+        // 10. WHATSAPP FORMATTED REPORT COPY (execCommand)
+        // ---------------------------------------------------------------------
+        function copyTextToClipboard(text) {
+            const helper = document.getElementById('clipboardHelper');
+            helper.value = text;
+            helper.select();
+            helper.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                showToast('রিপোর্ট কপি হয়েছে! এখন WhatsApp-এ পেস্ট করুন।');
+            } catch (err) {
+                showToast('কপি করতে সমস্যা হয়েছে!', true);
+            }
+        }
+
+        window.copyTeamWhatsAppReport = function () {
+            const modeLabel = dashboardFilter === 'half' ? 'হাফ সামারি (দুপুর)' : (dashboardFilter === 'full' ? 'ফুল সামারি (দিনশেষে)' : 'সর্বশেষ সামারি');
+            let lines = [];
+            lines.push(`📊 *দৈনিক সেলস ও অর্ডার রিপোর্ট (৬ এস আর)*`);
+            lines.push(`📅 তারিখ: ${currentDate} | ধরন: ${modeLabel}`);
+            lines.push(`--------------------------------`);
+
+            let totMemo = 0, totMemoT = 0;
+            let totPen = 0, totPenT = 0;
+            let totStat = 0, totStatT = 0;
+            let totKhata = 0, totKhataT = 0;
+
+            appState.srs.forEach((sr, i) => {
+                const t = sr.dailyTarget;
+                const rec = getSrDayRecord(currentDate, sr.id, dashboardFilter) || { memo: 0, pen: 0, stat: 0, khata: 0 };
+
+                totMemo += Number(rec.memo); totMemoT += Number(t.memo);
+                totPen += Number(rec.pen); totPenT += Number(t.pen);
+                totStat += Number(rec.stat); totStatT += Number(t.stat);
+                totKhata += Number(rec.khata); totKhataT += Number(t.khata);
+
+                lines.push(`*${i + 1}. ${sr.name}* (মেমো: ${rec.memo}/${t.memo})`);
+                lines.push(`• কলম: ${fmtNum(rec.pen)}/${fmtNum(t.pen)} পিস (বাকি: ${Math.max(0, t.pen - rec.pen)})`);
+                lines.push(`• স্টেশনারি: ${fmtNum(rec.stat)}/${fmtNum(t.stat)} পিস (বাকি: ${Math.max(0, t.stat - rec.stat)})`);
+                lines.push(`• খাতা: ৳${fmtNum(rec.khata)}/৳${fmtNum(t.khata)} (বাকি: ৳${Math.max(0, t.khata - rec.khata)})`);
+            });
+
+            lines.push(`--------------------------------`);
+            lines.push(`✅ *সর্বমোট হিসাব (৬ জন একত্রে):*`);
+            lines.push(`🧾 মোট মেমো: ${totMemo} / ${totMemoT} টি`);
+            lines.push(`🖊️ কলম: ${fmtNum(totPen)} / ${fmtNum(totPenT)} পিস (শর্টফল: ${Math.max(0, totPenT - totPen)})`);
+            lines.push(`📐 স্টেশনারি: ${fmtNum(totStat)} / ${fmtNum(totStatT)} পিস (শর্টফল: ${Math.max(0, totStatT - totStat)})`);
+            lines.push(`📒 খাতা: ৳${fmtNum(totKhata)} / ৳${fmtNum(totKhataT)} (শর্টফল: ৳${Math.max(0, totKhataT - totKhata)})`);
+
+            copyTextToClipboard(lines.join('\n'));
+        };
+
+        window.copyIndividualWhatsApp = function (srId) {
+            const sr = appState.srs.find(s => s.id === srId);
+            const t = sr.dailyTarget;
+            const rec = getSrDayRecord(currentDate, srId, 'latest') || { memo: 0, pen: 0, stat: 0, khata: 0, typeLabel: 'আজকের রিপোর্ট' };
+
+            const text = [
+                `📋 *দৈনিক অর্ডার সামারি (${rec.typeLabel || 'রিপোর্ট'})*`,
+                `👤 এস আর: *${sr.name}* (${sr.area || ''})`,
+                `📅 তারিখ: ${currentDate}`,
+                `🧾 অর্ডার মেমো: *${rec.memo}* / ${t.memo} টি (বাকি: ${Math.max(0, t.memo - rec.memo)})`,
+                `🖊️ কলম: *${fmtNum(rec.pen)}* / ${fmtNum(t.pen)} পিস (শর্টফল: ${Math.max(0, t.pen - rec.pen)})`,
+                `📐 স্টেশনারি: *${fmtNum(rec.stat)}* / ${fmtNum(t.stat)} পিস (শর্টফল: ${Math.max(0, t.stat - rec.stat)})`,
+                `📒 খাতা: *৳${fmtNum(rec.khata)}* / ৳${fmtNum(t.khata)} (শর্টফল: ৳${Math.max(0, t.khata - rec.khata)})`
+            ].join('\n');
+
+            copyTextToClipboard(text);
+        };
+
+        window.copyCurrentFormWhatsApp = function () {
+            const srId = document.getElementById('entrySrSelect').value;
+            const dateStr = document.getElementById('entryDateInput').value;
+            const summaryType = document.querySelector('input[name="summaryType"]:checked').value;
+            const sr = appState.srs.find(s => s.id === srId);
+            const t = sr.dailyTarget;
+
+            const memo = Number(document.getElementById('inputMemo').value || 0);
+            const pen = Number(document.getElementById('inputPen').value || 0);
+            const stat = Number(document.getElementById('inputStat').value || 0);
+            const khata = Number(document.getElementById('inputKhata').value || 0);
+            const label = summaryType === 'half' ? 'হাফ সামারি (দুপুর)' : 'ফুল সামারি (দিনশেষে)';
+
+            const text = [
+                `📋 *${label}*`,
+                `👤 এস আর: *${sr.name}*`,
+                `📅 তারিখ: ${dateStr}`,
+                `🧾 মেমো সংখ্যা: *${memo}* / ${t.memo} টি (বাকি: ${Math.max(0, t.memo - memo)})`,
+                `🖊️ কলম: *${fmtNum(pen)}* / ${fmtNum(t.pen)} পিস (শর্টফল: ${Math.max(0, t.pen - pen)})`,
+                `📐 স্টেশনারি: *${fmtNum(stat)}* / ${fmtNum(t.stat)} পিস (শর্টফল: ${Math.max(0, t.stat - stat)})`,
+                `📒 খাতা: *৳${fmtNum(khata)}* / ৳${fmtNum(t.khata)} (শর্টফল: ৳${Math.max(0, t.khata - khata)})`
+            ].join('\n');
+
+            copyTextToClipboard(text);
+        };
+
+        // ---------------------------------------------------------------------
+        // 11. BACKUP & RESET UTILITIES
+        // ---------------------------------------------------------------------
+        window.exportBackupJSON = function () {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `sales_tracker_backup_${getTodayStr()}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast('ব্যাকআপ ফাইল ডাউনলোড শুরু হয়েছে!');
+        };
+
+        window.showResetConfirmModal = function () {
+            const modal = document.getElementById('customModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.closeCustomModal = function () {
+            const modal = document.getElementById('customModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        window.confirmResetData = async function () {
+            const defConfig = getDefaultTeamConfig();
+            const today = getTodayStr();
+            const sampleToday = getDefaultTodaySampleEntries(today);
+
+            appState.adminPin = defConfig.adminPin;
+            appState.srs = defConfig.srs;
+            appState.entries = { [today]: sampleToday };
+
+            if (db && currentUser) {
+                const configDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'sales_tracker_config', 'team');
+                const todayDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'sales_tracker_days', today);
+                await setDoc(configDocRef, defConfig);
+                await setDoc(todayDocRef, sampleToday);
+            }
+
+            closeCustomModal();
+            renderTargetsTab();
+            renderDashboard();
+            showToast('নতুন স্যাম্পল ডাটা লোড করা হয়েছে!');
+        };
+
+        // ---------------------------------------------------------------------
+        // 12. INITIALIZATION
+        // ---------------------------------------------------------------------
+        window.addEventListener('DOMContentLoaded', () => {
+            const globalDate = document.getElementById('globalDateInput');
+            globalDate.value = currentDate;
+            globalDate.addEventListener('change', (e) => {
+                if (e.target.value) {
+                    currentDate = e.target.value;
+                    refreshActiveScreen();
+                    if (activeTab === 'entry') {
+                        document.getElementById('entryDateInput').value = currentDate;
+                        onEntryFormContextChange();
+                    }
+                }
+            });
+
+            populateLoginSrSelect();
+            lucide.createIcons();
+            initFirebaseSync();
+        });
+    </script>
+</body>
+</html>
