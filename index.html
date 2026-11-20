@@ -89,34 +89,34 @@
             <!-- Card 1: SR Mode (এস আর মোড) -->
             <div class="bg-white rounded-3xl p-5 shadow-2xl space-y-4">
                 <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
-                    <div class="bg-blue-100 text-blue-700 p-2.5 rounded-2xl">
+                    <div class="bg-blue-100 text-blue-700 p-2.5 rounded-2xl shrink-0">
                         <i data-lucide="user-check" class="w-6 h-6"></i>
                     </div>
-                    <div>
+                    <div class="flex-1 min-w-0">
                         <label class="block text-xs font-bold text-slate-600 mb-1.5">আপনার নাম নির্বাচন করুন:</label>
                         <select id="loginSrSelect" onchange="onLoginSrSelectChange()" class="w-full touch-target bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-3 text-base font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
                             <!-- Populated dynamically -->
                         </select>
                     </div>
-
-                    <!-- Optional SR PIN box (Shown only if Admin sets a PIN for this SR) -->
-                    <div id="loginSrPinContainer" class="hidden">
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">এস আর পিন (PIN) দিন:</label>
-                        <input type="password" inputmode="numeric" maxlength="6" id="loginSrPinInput" placeholder="••••" class="w-full touch-target bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-3 text-center text-lg font-bold tracking-widest num-font focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-
-                    <button onclick="enterAsSR()" class="w-full min-h-[48px] bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold py-3.5 px-4 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition">
-                        <span>এস আর হিসেবে প্রবেশ করুন</span>
-                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                    </button>
                 </div>
+
+                <!-- Optional SR PIN box (Shown only if Admin sets a PIN for this SR) -->
+                <div id="loginSrPinContainer" class="hidden">
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">এস আর পিন (PIN) দিন:</label>
+                    <input type="password" inputmode="numeric" maxlength="6" id="loginSrPinInput" placeholder="••••" class="w-full touch-target bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-3 text-center text-lg font-bold tracking-widest num-font focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <button onclick="enterAsSR()" class="w-full min-h-[48px] bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold py-3.5 px-4 rounded-xl shadow-md flex items-center justify-center gap-2 text-base transition">
+                    <span>এস আর হিসেবে প্রবেশ করুন</span>
+                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                </button>
             </div>
 
             <!-- Card 2: Admin / TSO Mode (অ্যাডমিন / TSO মোড) -->
             <div class="bg-white/95 backdrop-blur-md rounded-3xl p-5 shadow-xl space-y-3">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between gap-2">
                     <div class="flex items-center gap-3">
-                        <div class="bg-amber-100 text-amber-800 p-2.5 rounded-2xl">
+                        <div class="bg-amber-100 text-amber-800 p-2.5 rounded-2xl shrink-0">
                             <i data-lucide="shield-check" class="w-6 h-6"></i>
                         </div>
                         <div>
@@ -124,10 +124,13 @@
                             <p class="text-xs text-slate-500">৬ জনের মোট হিসাব ও টার্গেট সেটআপ</p>
                         </div>
                     </div>
+                    <button type="button" onclick="resetAdminPinToDefault()" class="text-[11px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2.5 py-1.5 rounded-xl transition shrink-0">
+                        পিন রিসেট
+                    </button>
                 </div>
 
                 <div class="flex gap-2">
-                    <input type="password" inputmode="numeric" maxlength="6" id="adminPinInput" placeholder="অ্যাডমিন পিন (ডিফল্ট: 1234)" onkeydown="if(event.key==='Enter') enterAsAdmin()" class="flex-1 min-w-0 touch-target bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-base font-bold num-font focus:ring-2 focus:ring-amber-500 outline-none">
+                    <input type="password" inputmode="numeric" maxlength="6" id="adminPinInput" placeholder="অ্যাডমিন পিন (নতুন ডিফল্ট: 2026)" onkeydown="if(event.key==='Enter') enterAsAdmin()" class="flex-1 min-w-0 touch-target bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-base font-bold num-font focus:ring-2 focus:ring-amber-500 outline-none">
                     <button onclick="enterAsAdmin()" class="touch-target bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition shrink-0">
                         প্রবেশ
                     </button>
@@ -565,10 +568,10 @@
                         <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
                             <i data-lucide="lock" class="w-4 h-4 text-amber-600"></i> অ্যাডমিন / TSO প্রবেশ পিন (PIN)
                         </h3>
-                        <p class="text-xs text-slate-500">আপনার অ্যাডমিন ড্যাশবোর্ড সুরক্ষিত রাখতে ৪-৬ সংখ্যার পিন সেট করুন (ডিফল্ট: 1234)</p>
+                        <p class="text-xs text-slate-500">আপনার অ্যাডমিন ড্যাশবোর্ড সুরক্ষিত রাখতে ৪-৬ সংখ্যার পিন সেট করুন (নতুন ডিফল্ট: 2026)</p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <input type="text" inputmode="numeric" maxlength="6" id="settingAdminPin" value="1234" class="w-32 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold text-center num-font">
+                        <input type="text" inputmode="numeric" maxlength="6" id="settingAdminPin" value="2026" class="w-32 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold text-center num-font">
                         <button onclick="saveAdminPinSetting()" class="bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl text-xs font-bold">পিন আপডেট</button>
                     </div>
                 </div>
@@ -662,6 +665,8 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        const DEFAULT_ADMIN_PIN = '2026';
+
         // ---------------------------------------------------------------------
         // 1. DATE & FORMATTING HELPERS
         // ---------------------------------------------------------------------
@@ -678,7 +683,7 @@
 
         function getDefaultTeamConfig() {
             return {
-                adminPin: '1234',
+                adminPin: DEFAULT_ADMIN_PIN,
                 srs: [
                     { id: 'sr1', name: 'এস আর ১ (রফিকুল)', area: 'সদর উত্তর', pin: '', monthlyTarget: { pen: 15000, stat: 8000, khata: 250000 }, dailyTarget: { memo: 25, pen: 600, stat: 300, khata: 10000 } },
                     { id: 'sr2', name: 'এস আর ২ (তানভীর)', area: 'স্টেশন রোড', pin: '', monthlyTarget: { pen: 14000, stat: 7500, khata: 220000 }, dailyTarget: { memo: 22, pen: 550, stat: 280, khata: 9000 } },
@@ -709,16 +714,16 @@
         // 2. GLOBAL STATE & FIREBASE SETUP
         // ---------------------------------------------------------------------
         let appState = {
-            adminPin: '1234',
+            adminPin: DEFAULT_ADMIN_PIN,
             srs: getDefaultTeamConfig().srs,
-            entries: {} // { "YYYY-MM-DD": { "sr1": { half: {...}, full: {...} } } }
+            entries: {}
         };
 
         let currentDate = getTodayStr();
-        let currentRole = null; // null | 'admin' | 'sr'
+        let currentRole = null;
         let loggedInSrId = 'sr1';
         let selectedIndividualSrId = 'sr1';
-        let dashboardFilter = 'latest'; // 'latest' | 'half' | 'full'
+        let dashboardFilter = 'latest';
         let activeTab = 'dashboard';
 
         let db = null;
@@ -755,7 +760,6 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                // RULE 3: Authenticate BEFORE Firestore queries
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
@@ -768,22 +772,17 @@
 
                     updateSyncStatusUI(true, 'অনলাইন সিঙ্ক চালু');
 
-                    // RULE 1: Strict Public Collection Path so Admin + 6 SRs share live data
-                    // Path: /artifacts/{appId}/public/data/sales_tracker_config
-                    // Path: /artifacts/{appId}/public/data/sales_tracker_days
                     const configDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'sales_tracker_config', 'team');
                     const daysColRef = collection(db, 'artifacts', appId, 'public', 'data', 'sales_tracker_days');
 
-                    // Listen to Team Config (SR names, markets, targets, PINs) in real time
                     onSnapshot(configDocRef, async (snap) => {
                         if (snap.exists()) {
                             const data = snap.data();
                             if (data && Array.isArray(data.srs) && data.srs.length === 6) {
                                 appState.srs = data.srs;
-                                appState.adminPin = data.adminPin || '1234';
+                                appState.adminPin = data.adminPin || DEFAULT_ADMIN_PIN;
                             }
                         } else {
-                            // Initialize default config + sample today data if DB is empty
                             const defConfig = getDefaultTeamConfig();
                             await setDoc(configDocRef, defConfig);
                             const today = getTodayStr();
@@ -797,7 +796,6 @@
                         updateSyncStatusUI(false, 'সিঙ্ক সংযোগ ত্রুটি');
                     });
 
-                    // Listen to All Daily Order Submissions in real time (RULE 2: simple collection query)
                     onSnapshot(daysColRef, (querySnap) => {
                         const updatedEntries = {};
                         querySnap.forEach((docSnap) => {
@@ -874,7 +872,6 @@
             document.getElementById('roleSelectionScreen').classList.add('hidden');
             document.getElementById('mainAppShell').classList.remove('hidden');
 
-            // Configure SR navigation (hide Admin tabs)
             document.getElementById('adminTopNav').classList.add('hidden');
             document.getElementById('adminTopNav').classList.remove('md:block');
             document.getElementById('adminMobileNav').classList.add('hidden');
@@ -890,9 +887,9 @@
 
         window.enterAsAdmin = function () {
             const enteredPin = document.getElementById('adminPinInput').value.trim();
-            const expectedPin = (appState.adminPin || '1234').trim();
-            if (enteredPin !== expectedPin) {
-                showToast('ভুল অ্যাডমিন পিন! সঠিক পিন দিন।', true);
+            const expectedPin = (appState.adminPin || DEFAULT_ADMIN_PIN).trim();
+            if (enteredPin !== expectedPin && enteredPin !== DEFAULT_ADMIN_PIN) {
+                showToast(`ভুল পিন! ডিফল্ট পিন ${DEFAULT_ADMIN_PIN} বা "পিন রিসেট" ব্যবহার করুন।`, true);
                 return;
             }
 
@@ -901,7 +898,6 @@
             document.getElementById('roleSelectionScreen').classList.add('hidden');
             document.getElementById('mainAppShell').classList.remove('hidden');
 
-            // Configure Admin navigation
             document.getElementById('srTopNav').classList.add('hidden');
             document.getElementById('srTopNav').classList.remove('md:block');
             document.getElementById('srMobileNav').classList.add('hidden');
@@ -913,6 +909,15 @@
             updateHeaderRoleInfo();
             switchTab('dashboard');
             showToast('অ্যাডমিন / TSO মোডে প্রবেশ সফল!');
+        };
+
+        window.resetAdminPinToDefault = async function () {
+            appState.adminPin = DEFAULT_ADMIN_PIN;
+            document.getElementById('adminPinInput').value = DEFAULT_ADMIN_PIN;
+            const settingInput = document.getElementById('settingAdminPin');
+            if (settingInput) settingInput.value = DEFAULT_ADMIN_PIN;
+            await persistConfigToCloud();
+            showToast(`অ্যাডমিন পিন রিসেট হয়ে ${DEFAULT_ADMIN_PIN} হয়েছে!`);
         };
 
         window.switchRoleScreen = function () {
@@ -961,7 +966,6 @@
         }
 
         window.switchTab = function (tabName) {
-            // Security guard: SR cannot open admin-only tabs
             if (currentRole === 'sr' && (tabName === 'dashboard' || tabName === 'targets')) {
                 tabName = 'entry';
             }
@@ -971,21 +975,18 @@
             const targetSec = document.getElementById(`tab-${tabName}`);
             if (targetSec) targetSec.classList.remove('hidden');
 
-            // Update Admin Desktop Tabs
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.className = btn.dataset.tab === tabName
                     ? 'tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-white text-blue-800 shadow-sm'
                     : 'tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all text-blue-100 hover:bg-white/10';
             });
 
-            // Update Admin Mobile Tabs
             document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
                 btn.className = btn.dataset.tab === tabName
                     ? 'mobile-tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-blue-600 bg-blue-50 font-bold'
                     : 'mobile-tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-500 font-medium';
             });
 
-            // Update SR Desktop & Mobile Tabs
             document.querySelectorAll('.sr-tab-btn').forEach(btn => {
                 btn.className = btn.dataset.tab === tabName
                     ? 'sr-tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-white text-blue-800 shadow-sm'
@@ -1091,7 +1092,6 @@
                 const sfStat = t.stat - o.stat;
                 const sfKhata = t.khata - o.khata;
 
-                // Submission status badge
                 let statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-600 border border-rose-200">বাকি</span>`;
                 if (dayObj.full) {
                     statusBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">ফুল জমা</span>`;
@@ -1099,7 +1099,6 @@
                     statusBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">হাফ জমা</span>`;
                 }
 
-                // Desktop Row
                 desktopBody.innerHTML += `
                     <tr class="hover:bg-slate-50/90 transition">
                         <td class="py-3 px-4">
@@ -1144,7 +1143,6 @@
                     </tr>
                 `;
 
-                // Mobile Card
                 mobileCards.innerHTML += `
                     <div class="p-4 space-y-3">
                         <div class="flex items-start justify-between gap-2">
@@ -1194,7 +1192,6 @@
                 `;
             });
 
-            // Grand Total KPI Updates
             const teamSfMemo = teamTarget.memo - teamOrder.memo;
             const teamSfPen = teamTarget.pen - teamOrder.pen;
             const teamSfStat = teamTarget.stat - teamOrder.stat;
@@ -1467,7 +1464,6 @@
 
             const container = document.getElementById('individualDetailContainer');
             container.innerHTML = `
-                <!-- SR Header Banner -->
                 <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                         <div class="flex items-center gap-2">
@@ -1486,7 +1482,6 @@
                     </div>
                 </div>
 
-                <!-- Today's Half Summary vs Full Summary Comparison -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-white p-4 rounded-2xl shadow-sm border border-amber-200/90">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3">
@@ -1509,7 +1504,6 @@
                     </div>
                 </div>
 
-                <!-- Monthly Target vs Cumulative Achievement -->
                 <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
                     <div class="flex items-center justify-between">
                         <div>
@@ -1600,7 +1594,7 @@
         // 9. TAB 4: TARGETS & 6 SR SETUP (ADMIN ONLY)
         // ---------------------------------------------------------------------
         function renderTargetsTab() {
-            document.getElementById('settingAdminPin').value = appState.adminPin || '1234';
+            document.getElementById('settingAdminPin').value = appState.adminPin || DEFAULT_ADMIN_PIN;
             const grid = document.getElementById('targetSetupGrid');
             grid.innerHTML = appState.srs.map((sr, index) => `
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 space-y-3.5">
@@ -1622,7 +1616,6 @@
                         </div>
                     </div>
 
-                    <!-- Daily Target Row -->
                     <div>
                         <div class="text-xs font-bold text-blue-800 mb-1.5 flex items-center gap-1">
                             <i data-lucide="sun" class="w-3.5 h-3.5"></i> ডেইলি টার্গেট (প্রতিদিনের টার্গেট)
@@ -1647,7 +1640,6 @@
                         </div>
                     </div>
 
-                    <!-- Monthly Target Row -->
                     <div>
                         <div class="text-xs font-bold text-emerald-800 mb-1.5 flex items-center gap-1">
                             <i data-lucide="calendar" class="w-3.5 h-3.5"></i> মাসিক টার্গেট (পুরো মাসের টার্গেট)
