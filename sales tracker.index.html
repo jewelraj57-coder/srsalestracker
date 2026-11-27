@@ -7,119 +7,35 @@ from google.oauth2.service_account import Credentials
 
 st.set_page_config(page_title="TSM Sales Tracker", layout="wide")
 
-# --- Colorful & Mobile Responsive CSS ---
+# --- Custom CSS & Mobile Responsive Styling ---
 st.markdown(
     """
     <style>
-        .stApp {
-            background: linear-gradient(180deg, #eff6ff 0%, #f8fafc 38%, #f1f5f9 100%);
-        }
-
         .block-container {
-            padding-top: 1.25rem;
+            padding-top: 1.5rem;
             padding-bottom: 2.5rem;
             padding-left: 1.5rem;
             padding-right: 1.5rem;
         }
 
-        .hero-banner {
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 55%, #0ea5e9 100%);
-            color: #ffffff;
-            padding: 18px 22px;
-            border-radius: 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.18);
-        }
-
-        .hero-banner h1 {
-            color: #ffffff !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            font-size: 1.85rem !important;
-            font-weight: 800 !important;
-            letter-spacing: -0.02em;
-        }
-
-        .hero-banner p {
-            color: #e0f2fe !important;
-            margin: 6px 0 0 0 !important;
-            font-size: 0.92rem !important;
-        }
-
         [data-testid="stMetric"] {
-            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-            border: 1px solid #dbeafe;
-            border-top: 4px solid #2563eb;
-            border-radius: 14px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
             padding: 12px 14px;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }
-
-        [data-testid="stMetric"]:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12);
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
         }
 
         [data-testid="stMetricLabel"] > div {
-            font-size: 0.82rem !important;
-            font-weight: 700 !important;
-            color: #334155 !important;
+            font-size: 0.85rem !important;
+            font-weight: 600 !important;
+            color: #475569 !important;
         }
 
         [data-testid="stMetricValue"] > div {
-            font-size: 1.32rem !important;
-            font-weight: 800 !important;
+            font-size: 1.35rem !important;
+            font-weight: 700 !important;
             color: #0f172a !important;
-        }
-
-        .sku-card {
-            border-radius: 14px;
-            padding: 16px 18px;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
-        }
-
-        .sku-pen {
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            border-left: 5px solid #2563eb;
-            color: #0f172a;
-        }
-
-        .sku-stat {
-            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
-            border-left: 5px solid #7c3aed;
-            color: #0f172a;
-        }
-
-        .sku-khata {
-            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-            border-left: 5px solid #059669;
-            color: #0f172a;
-        }
-
-        .session-half {
-            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-            border-left: 5px solid #d97706;
-            color: #0f172a;
-        }
-
-        .session-full {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border-left: 5px solid #0284c7;
-            color: #0f172a;
-        }
-
-        .sku-title {
-            font-size: 1.05rem;
-            font-weight: 800;
-            margin-bottom: 8px;
-        }
-
-        .sku-line {
-            font-size: 0.9rem;
-            margin: 4px 0;
-            line-height: 1.45;
         }
 
         .stTabs [data-baseweb="tab-list"] {
@@ -128,61 +44,41 @@ st.markdown(
         }
 
         .stTabs [data-baseweb="tab"] {
-            border-radius: 10px;
-            padding: 8px 16px;
-            font-weight: 700;
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
-            color: #334155;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-weight: 600;
+            background-color: #f1f5f9;
         }
 
         .stTabs [aria-selected="true"] {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-            color: #ffffff !important;
-            border-color: #1d4ed8 !important;
+            background-color: #dbeafe !important;
+            color: #1d4ed8 !important;
         }
 
         .stButton > button, .stFormSubmitButton > button {
-            border-radius: 10px;
-            font-weight: 700;
+            border-radius: 8px;
+            font-weight: 600;
             width: 100%;
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            color: #ffffff;
-            border: none;
-            padding: 0.55rem 1rem;
-        }
-
-        .stButton > button:hover, .stFormSubmitButton > button:hover {
-            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-            color: #ffffff;
-        }
-
-        [data-testid="stDataFrame"] {
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0 3px 10px rgba(15, 23, 42, 0.04);
         }
 
         @media (max-width: 768px) {
             .block-container {
-                padding-top: 0.85rem;
+                padding-top: 1rem;
                 padding-bottom: 2rem;
                 padding-left: 0.75rem;
                 padding-right: 0.75rem;
             }
 
-            .hero-banner {
-                padding: 14px 16px;
-                border-radius: 12px;
+            h1 {
+                font-size: 1.5rem !important;
             }
 
-            .hero-banner h1 {
-                font-size: 1.35rem !important;
+            h2, .stSubheader, [data-testid="stSubheader"] {
+                font-size: 1.15rem !important;
             }
 
-            .hero-banner p {
-                font-size: 0.8rem !important;
+            h3 {
+                font-size: 1.05rem !important;
             }
 
             [data-testid="stMetric"] {
@@ -192,7 +88,7 @@ st.markdown(
             }
 
             [data-testid="stMetricLabel"] > div {
-                font-size: 0.74rem !important;
+                font-size: 0.75rem !important;
             }
 
             [data-testid="stMetricValue"] > div {
@@ -201,17 +97,13 @@ st.markdown(
 
             .stTabs [data-baseweb="tab"] {
                 padding: 6px 10px;
-                font-size: 0.8rem !important;
-                flex: 1 1 46%;
+                font-size: 0.82rem !important;
+                flex: 1 1 45%;
                 text-align: center;
             }
 
-            .sku-card {
-                padding: 12px 14px;
-            }
-
             [data-testid="stDataFrame"] {
-                font-size: 0.78rem !important;
+                font-size: 0.8rem !important;
             }
         }
     </style>
@@ -361,15 +253,8 @@ def read_sales(sales_ws):
     return df_s
 
 
-st.markdown(
-    """
-    <div class="hero-banner">
-        <h1>TSM Sales Tracker</h1>
-        <p>6 SRs • Pen (Pcs + Rate), Stationery (Pcs + Rate) &amp; Khata (Ton @ 200,000 BDT) • Daily, Weekly &amp; Monthly Reports • Half &amp; Full Summary</p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+st.title("TSM Sales Tracker")
+st.caption("6 SRs • Pen (Pcs + Rate), Stationery (Pcs + Rate) & Khata (Ton @ 200,000 BDT) • Daily, Weekly & Monthly Reports • Half & Full Summary")
 
 try:
     sales_ws, cfg_ws = connect_sheets()
@@ -608,43 +493,27 @@ with t1:
     c9.metric("Shortfall %", f"{tot_shp:.1f}%")
     c10.metric("Total Khata", f"{rep_df['Month_Khata_Ton'].sum():,.2f} Ton")
 
-    st.markdown("<br>", unsafe_allow_html=True)
     b1, b2, b3 = st.columns(3)
     with b1:
-        st.markdown(
-            f"""
-            <div class="sku-card sku-pen">
-                <div class="sku-title">Pen (Pcs &amp; BDT)</div>
-                <div class="sku-line">• Today: <b>{rep_df['Day_Pen_Pcs'].sum():,.0f} Pcs</b> (BDT {rep_df['Day_Pen_BDT'].sum():,.0f}) | Shortfall: <b>{rep_df['Day_Short_Pen'].sum():,.0f}</b></div>
-                <div class="sku-line">• 7 Days: <b>{rep_df['Week_Pen_Pcs'].sum():,.0f} Pcs</b></div>
-                <div class="sku-line">• Monthly: <b>{rep_df['Month_Pen_Pcs'].sum():,.0f} / {rep_df['Month_Pen_Target'].sum():,.0f} Pcs</b> (BDT {rep_df['Month_Pen_BDT'].sum():,.0f}) | Shortfall: <b>{rep_df['Month_Short_Pen'].sum():,.0f}</b></div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+        st.info(
+            f"**Pen (Pcs & BDT)**\n\n"
+            f"- Today: **{rep_df['Day_Pen_Pcs'].sum():,.0f} Pcs** (BDT {rep_df['Day_Pen_BDT'].sum():,.0f}) | Shortfall: **{rep_df['Day_Short_Pen'].sum():,.0f}**\n"
+            f"- 7 Days: **{rep_df['Week_Pen_Pcs'].sum():,.0f} Pcs**\n"
+            f"- Monthly: **{rep_df['Month_Pen_Pcs'].sum():,.0f} / {rep_df['Month_Pen_Target'].sum():,.0f} Pcs** (BDT {rep_df['Month_Pen_BDT'].sum():,.0f}) | Shortfall: **{rep_df['Month_Short_Pen'].sum():,.0f}**"
         )
     with b2:
-        st.markdown(
-            f"""
-            <div class="sku-card sku-stat">
-                <div class="sku-title">Stationery (Pcs &amp; BDT)</div>
-                <div class="sku-line">• Today: <b>{rep_df['Day_Stat_Pcs'].sum():,.0f} Pcs</b> (BDT {rep_df['Day_Stat_BDT'].sum():,.0f}) | Shortfall: <b>{rep_df['Day_Short_Stat'].sum():,.0f}</b></div>
-                <div class="sku-line">• 7 Days: <b>{rep_df['Week_Stat_Pcs'].sum():,.0f} Pcs</b></div>
-                <div class="sku-line">• Monthly: <b>{rep_df['Month_Stat_Pcs'].sum():,.0f} / {rep_df['Month_Stat_Target'].sum():,.0f} Pcs</b> (BDT {rep_df['Month_Stat_BDT'].sum():,.0f}) | Shortfall: <b>{rep_df['Month_Short_Stat'].sum():,.0f}</b></div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+        st.info(
+            f"**Stationery (Pcs & BDT)**\n\n"
+            f"- Today: **{rep_df['Day_Stat_Pcs'].sum():,.0f} Pcs** (BDT {rep_df['Day_Stat_BDT'].sum():,.0f}) | Shortfall: **{rep_df['Day_Short_Stat'].sum():,.0f}**\n"
+            f"- 7 Days: **{rep_df['Week_Stat_Pcs'].sum():,.0f} Pcs**\n"
+            f"- Monthly: **{rep_df['Month_Stat_Pcs'].sum():,.0f} / {rep_df['Month_Stat_Target'].sum():,.0f} Pcs** (BDT {rep_df['Month_Stat_BDT'].sum():,.0f}) | Shortfall: **{rep_df['Month_Short_Stat'].sum():,.0f}**"
         )
     with b3:
-        st.markdown(
-            f"""
-            <div class="sku-card sku-khata">
-                <div class="sku-title">Khata (Ton @ 200,000 BDT)</div>
-                <div class="sku-line">• Today: <b>{rep_df['Day_Khata_Ton'].sum():,.2f} Ton</b> (<b>BDT {rep_df['Day_Khata_BDT'].sum():,.0f}</b>) | Shortfall: <b>{rep_df['Day_Short_Khata_Ton'].sum():,.2f} Ton</b></div>
-                <div class="sku-line">• 7 Days: <b>{rep_df['Week_Khata_Ton'].sum():,.2f} Ton</b></div>
-                <div class="sku-line">• Monthly: <b>{rep_df['Month_Khata_Ton'].sum():,.2f} / {rep_df['Month_Khata_Target_Ton'].sum():,.2f} Ton</b> (<b>BDT {rep_df['Month_Khata_BDT'].sum():,.0f}</b>) | Shortfall: <b>{rep_df['Month_Short_Khata_Ton'].sum():,.2f} Ton</b></div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+        st.info(
+            f"**Khata (Ton @ 200,000 BDT)**\n\n"
+            f"- Today: **{rep_df['Day_Khata_Ton'].sum():,.2f} Ton** (**BDT {rep_df['Day_Khata_BDT'].sum():,.0f}**) | Shortfall: **{rep_df['Day_Short_Khata_Ton'].sum():,.2f} Ton**\n"
+            f"- 7 Days: **{rep_df['Week_Khata_Ton'].sum():,.2f} Ton**\n"
+            f"- Monthly: **{rep_df['Month_Khata_Ton'].sum():,.2f} / {rep_df['Month_Khata_Target_Ton'].sum():,.2f} Ton** (**BDT {rep_df['Month_Khata_BDT'].sum():,.0f}**) | Shortfall: **{rep_df['Month_Short_Khata_Ton'].sum():,.2f} Ton**"
         )
 
     grand_row = pd.DataFrame([{
@@ -704,26 +573,16 @@ with t2:
 
     h_col, f_col = st.columns(2)
     with h_col:
-        st.markdown(
-            f"""
-            <div class="sku-card session-half">
-                <div class="sku-title">Half Summary — {pick_sr} ({rep_date_str})</div>
-                <div class="sku-line">• Total Amount: <b>BDT {one['Half_BDT']:,.0f}</b> | Memos: <b>{int(one['Half_Memo'])}</b></div>
-                <div class="sku-line">• Pen: <b>{one['Half_Pen_Pcs']:,.0f} Pcs</b> | Stationery: <b>{one['Half_Stat_Pcs']:,.0f} Pcs</b> | Khata: <b>BDT {one['Half_Khata_BDT']:,.0f}</b></div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+        st.success(
+            f"**Half Summary — {pick_sr} ({rep_date_str})**\n\n"
+            f"- Total Amount: **BDT {one['Half_BDT']:,.0f}** | Memos: **{int(one['Half_Memo'])}**\n"
+            f"- Pen: **{one['Half_Pen_Pcs']:,.0f} Pcs** | Stationery: **{one['Half_Stat_Pcs']:,.0f} Pcs** | Khata: **BDT {one['Half_Khata_BDT']:,.0f}**"
         )
     with f_col:
-        st.markdown(
-            f"""
-            <div class="sku-card session-full">
-                <div class="sku-title">Full Summary — {pick_sr} ({rep_date_str})</div>
-                <div class="sku-line">• Total Amount: <b>BDT {one['Full_BDT']:,.0f}</b> | Memos: <b>{int(one['Full_Memo'])}</b></div>
-                <div class="sku-line">• Pen: <b>{one['Full_Pen_Pcs']:,.0f} Pcs</b> | Stationery: <b>{one['Full_Stat_Pcs']:,.0f} Pcs</b> | Khata: <b>BDT {one['Full_Khata_BDT']:,.0f}</b></div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+        st.warning(
+            f"**Full Summary — {pick_sr} ({rep_date_str})**\n\n"
+            f"- Total Amount: **BDT {one['Full_BDT']:,.0f}** | Memos: **{int(one['Full_Memo'])}**\n"
+            f"- Pen: **{one['Full_Pen_Pcs']:,.0f} Pcs** | Stationery: **{one['Full_Stat_Pcs']:,.0f} Pcs** | Khata: **BDT {one['Full_Khata_BDT']:,.0f}**"
         )
 
     st.dataframe(
